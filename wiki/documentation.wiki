@@ -1,7 +1,6 @@
-#summary MacroLua Documentation
+#summary MacroLua instructions
 #labels Featured
 
-= !MacroLua Documentation =
 <wiki:toc max_depth="2" />
 
 = Introduction =
