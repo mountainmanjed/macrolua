@@ -494,18 +494,19 @@ emu.registerbefore(function()
 		for p=1,nplayers do if not inputstream[frame][p] then inputstream[frame][p]="" end end
 		if fba then --In fba, joypad.set is called once without a player number.
 			local i={}
+			--local i=joypad.getdown() --This should allow lua+user input but it makes keys never get released
 			for p=1,nplayers do
 				for _,v in ipairs(module) do
 					local u=string.gsub(v[2],"P#","P"..p)
-					if string.find(inputstream[frame][p],v[1]) then i[u]=1 end--**else i[u]=0 end
+					if string.find(inputstream[frame][p],v[1]) then i[u]=1 end
 				end
 			end
 			joypad.set(i)
 		else --In other emus, joypad.set is called separately for each player.
 			for p=1,nplayers do
-				local i={}
+				local i=joypad.getdown(p) --This allows lua+user input
 				for _,v in ipairs(module) do
-					if string.find(inputstream[frame][p],v[1]) then i[v[2]]=true end--**else i[v[2]]=false end
+					if string.find(inputstream[frame][p],v[1]) then i[v[2]]=true end
 				end
 				joypad.set(p,i)
 			end
