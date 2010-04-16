@@ -1,7 +1,5 @@
-#summary macrolua instructions
+#summary This document is also available in the download package.
 #labels Featured
-
-_This document is also available in the download package._
 
 <wiki:toc max_depth="2" />
 
@@ -122,7 +120,7 @@ Not all games have known mute codes. You can request more at [http://cheat.retro
 ||1||`emu` alias||`fba`||`pcsx`||`gens`||`snes9x`||`vba`||`FCEU`||×||
 ||2a||`input.registerhotkey()`||×||×||○||×||×||×||○||
 ||2b||`input.get()`||○||○||n/a||○||○||○||n/a||
-||3||lua+user input||×||×||○||×||×||○||×||
+||3||lua+user input||×||○||○||○||○||○||×||
 ||4||`savestate.registersave()`<br>`savestate.registerload()`||×||×||○||○||×||○^2^||○||
 ||5a||`emu.registerstart()`||×||×||○||×||×||×||×||
 ||5b||(name function)||×||×||×||×||×||×||×||
@@ -137,7 +135,7 @@ Elements 1–2 are the minimum required.
    # The script automatically determines the new game name and control scheme when a new game is loaded.
           * No such function that returns the name of the game currently exists.
 
-[http://code.google.com/p/yabause-rr/ yabause-rr] and [http://code.google.com/p/mednafen-rr/ mednafen-rr] do not support Lua whatsoever.
+[http://code.google.com/p/mupen64-rr/ mupen64-rr], [http://code.google.com/p/yabause-rr/ yabause-rr] and [http://code.google.com/p/mednafen-rr/ mednafen-rr] do not support Lua whatsoever.
 
-   * `[1]` snes9x 1.51 only accepts Lua input from within a while true do loop, so !MacroLua won't work.
+   * `[1]` snes9x 1.51 only accepts Lua input from within a 'while true do' loop, so !MacroLua won't work.
    * `[2]` Loading savestates via Lua crashes FCEUX.
