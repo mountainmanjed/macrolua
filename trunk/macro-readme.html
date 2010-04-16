@@ -179,7 +179,7 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th>A</th><td><code>emu</code> alias</td><td class="yes"><code>fba</code></td><td class="yes"><code>pcsx</code></td><td class="yes"><code>gens</code></td><td class="yes"><code>snes9x</code></td><td class="yes"><code>vba</code></td><td class="yes"><code>FCEU</code></td><td class="no">×</td></tr>
 <tr><th rowspan="2">B</th><td><code>input.registerhotkey()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="yes">○</td></tr>
 <tr><td><code>input.get()</code></td><td class="yes">○</td><td class="yes">○</td><td class="meh">n/a</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="meh">n/a</td></tr>
-<tr><th>C</th><td>lua+user input</td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><th>C</th><td>lua+user input</td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 <tr><th>D</th><td><code>savestate.registersave()<br />savestate.registerload()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">○<a class="foot" href="#2">[2]</a></td><td class="yes">○</td></tr>
 <tr><th rowspan="2">E</th><td><code>emu.registerstart()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
 <tr><td>(name function)</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
@@ -197,10 +197,10 @@ h6 { margin: 0 ; text-align: right ; }
 <ul><li>No such function that returns the name of the game currently exists.</li></ul></li>
 </ol>
 
-<p><b><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></b> and <b><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></b> do not support Lua whatsoever.</p>
+<p><b><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></b>, <b><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></b> and <b><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></b> do not support Lua whatsoever.</p>
 
 <div id="foot"><ol>
-<li><a name="1"></a>snes9x 1.51 only accepts Lua input from within a <code>while true do</code> loop, so MacroLua won't work.</li>
+<li><a name="1"></a>snes9x 1.51 only accepts Lua input from within a <code>while true do</code> loop, so playback won't work.</li>
 <li><a name="2"></a>Loading savestates via Lua crashes FCEUX.</li>
 </ol></div>
 
