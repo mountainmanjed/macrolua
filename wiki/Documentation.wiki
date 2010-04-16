@@ -137,5 +137,5 @@ Elements 1–2 are the minimum required.
 
 [http://code.google.com/p/mupen64-rr/ mupen64-rr], [http://code.google.com/p/yabause-rr/ yabause-rr] and [http://code.google.com/p/mednafen-rr/ mednafen-rr] do not support Lua whatsoever.
 
-   * `[1]` snes9x 1.51 only accepts Lua input from within a 'while true do' loop, so !MacroLua won't work.
+   * `[1]` snes9x 1.51 only accepts Lua input from within a `while true do` loop, so playback won't work.
    * `[2]` Loading savestates via Lua crashes FCEUX.
