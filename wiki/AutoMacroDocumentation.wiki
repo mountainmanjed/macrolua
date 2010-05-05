@@ -1,0 +1,134 @@
+#summary This document is also available in the download package.
+#labels Featured
+
+<wiki:toc max_depth="2" />
+
+----
+= Introduction =
+
+AutoMacro is a program to script and execute precise sequences of commands in PC games. It was created with [http://www.autoitscript.com/autoit3/index.shtml AutoIt3].
+
+This program requires the following things of your game or emulator to work:
+
+    * It must be running on your PC.
+    * It must be running at full speed or at least constant speed.
+    * It must allow all players to be controlled by the keyboard simultaneously.
+          * There is a patch available that enables the PC version of Street Fighter IV to do this:
+          * [http://forum.arcadecontrols.com/index.php?topic=96377.0]
+
+*This tool is not intended for use in competitive or online play.<br>
+Any videos produced with the aid of this program should disclose that they are tool-assisted.*
+
+----
+= Using the program =
+=== Basic usage ===
+
+Open AutoMacro. This will generate a _macro.ini_ file if one doesn't exist. Configure the gamekeys in _macro.ini_ to match the settings in your game or emulator. Using a plain text editor, compose a script that will try to perform the desired sequence of commands. Save it as a _.mis_ file. Open the program and load the script. This can be done by browsing for it (Ctrl+O), typing the filename into the bar, or by dragging and dropping the file onto the bar.
+
+Once you have the settings configured and a script loaded, you are ready to start sending the commands to the game. Make the game window active or full screen and get to the part where you want the sequence to begin. Enter the startkey and the action will proceed. When it's finished you can enter the startkey again to repeat the sequence. To stop it before it's complete, press the startkey again or the stopkey. You can make changes to the script file, reload it, and try again until the results are acceptable.
+
+=== Other functions ===
+
+*Reload script* (F5) reparses the currently loaded script file and *Reload macro.ini* (Ctrl+F5) rereads the settings file. These things can be done automatically with the autoreload option.
+
+*Edit script* (F6) and *Edit macro.ini* (Ctrl+F6) opens these files with Notepad for quick editing.
+
+*Analyze script* (F7) opens a window with details about the currently loaded script. This function is useful for diagnosing problems.
+
+    * *Raw string* shows the text of the file before any processing.
+    * *Processed string* shows the result after stripping unknown or commented text, and after expanding the shorthand for waits and loops.
+    * *Input stream* shows a frame-by-frame table of what inputs are active.
+    * *Delta stream* shows a frame-by-frame table of what inputs are activated or released.
+    * *Command queue* shows the list of the commands to be executed by AutoIt.
+
+*Report current settings* (Ctrl+F7) outputs the configuration to the console. You can confirm that your gamekeys and other settings are configured properly this way.
+
+    * The hotkey bindings are shown in AutoIt's own format. They also appear in the File menu as written literally. They are greyed out because they are not intended to be activated this way.
+
+*Unload script* (F8) clears the currently loaded script file.
+
+----
+= Writing scripts =
+
+This section explains the script format.
+
+In the following commands, `n` represents a number and `k` represents a key symbol (direction or button) defined in the settings file.
+||*`k`*||Input the gamekey k. The key is pressed for the current frame only and then released.||
+||*`_k`*||Hold the gamekey k. The key is pressed for the current frame and any subsequent frames until released.||
+||*`^k`*||Release the gamekey k, if held.||
+||*`*`*||Release all held keys.||
+||*`.`*||Advance one frame.||
+||*`Wn`*||Advance (wait) n frames.||
+||*`+`*||Select player 1.||
+||*`-`*||Select the next player.||
+||*`<`*||Open a bracketed section and switch control to player 1.||
+||*`/`*||Switch to the next player in a bracketed section.||
+||*`>`*||Close a bracketed section.||
+||*`()n`*||Repeat the commands enclosed in the parentheses n times. Loops can be nested.||
+||*`# text`*||A comment. The rest of the line after the symbol is ignored by the script.<br>Comments that explain what the macro does are recommended.||
+||*`!`*||End the macro. Any content after the end is ignored by the script, and can be used as comments.<br>Don't forget to advance at least one frame after the last input and before the end.||
+
+Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a `W`) and numerical key presses.
+
+Analog inputs are not (yet) supported.
+
+=== Synchronous multi-player control with + - ===
+
+    * Commands are applied only to the selected player.
+    * Player 1 is selected by default.
+    * The + and - symbols are used to switch between players.
+    * Time advancement applies to all players.
+    * Nonselected players can give input with their held keys.
+    * To modify the input of multiple players on the same frame, switch between them before advancing frames.
+
+=== Asynchronous multi-player control with < / > ===
+
+    * Commands are applied only to the selected player.
+    * Player 1 is selected when the brackets are opened.
+    * Control is switched to the next player after each /.
+    * Time advancement applies only to the selected player.
+    * When the brackets are closed, time is advanced to the point of the player with the most frames, wait frames are added to the others to make up the difference, all player inputs are multiplexed, and control returns to player 1.
+    * The + - symbols are ignored inside brackets.
+
+----
+= Configuring the settings =
+
+The _macro.ini_ file contains the user's settings. If it doesn't exist it will be created when running AutoMacro, and you can restore the default settings by removing the file.
+||*`macrofile`*||This is the script that will be loaded automatically when starting the program. It can be left blank.||
+||*`targetwindow`*||This is the text that must appear in the title bar of the active window in order for your script to be sent. Partial matches are OK, and it can be left blank.<br>Using this is recommended to avoid accidentally sending keystrokes to other programs.||
+||*`startkey`*||This is the hotkey or key combination to start playing, or to stop if currently playing.||
+||*`stopkey`*||Press this to stop if currently playing.||
+||*`framelength`*||This is a number or numerical expression that defines how long a frame is in milliseconds. Games typically run at 60 frames per second (a frame length of 1000/60 ms) or else just under 60 fps.<br>This value should only be adjusted if the scripted input seems to run at the wrong speed.||
+||*`nplayers`*||Most games of interest are for two players, but any number can be supported.||
+||*`nkeys`*||This is the number of keys (directions and buttons) for each player.<br>Avoid setting `nplayers` and `nkeys` higher than necessary or parsing will be slower.||
+||*`gamekeys`*||This table determines the mappings for each key and for each player.||
+
+    * The first column is a descriptive name for the command.
+    * The next column is the single-character, case-insensitive symbol to write in the script to perform that command.
+          o Do not use these reserved characters: `w W . , _ ^ * + - < / > ( ) $ & # !`
+    * The remaining columns are the corresponding key bindings assigned for each player.
+    * There must be a minimum of one column for each player (plus the first two columns) and one row for each key.
+    * Each entry on a row must be separated by blank space.
+
+||*`autoreload`*||If this is `true`, the program automatically reloads the script and the settings file when changes are made. If it is `false` they have to be reloaded manually.||
+||*`showlinenumbers`*||Set to `true` or `false`, this determines whether the frame numbers are displayed for the input stream and delta stream in the script analysis window.||
+||*`maxwarnings`*||This is the maximum number of formatting problems (such as unknown symbols) that will be found before the parser stops trying to read a script.||
+
+=== Assigning hotkeys and game keys ===
+
+    * Most keyboard keys can be assigned to the hotkey functions, optionally combined with `Shift+`, `Ctrl+` and `Alt+` modifiers.
+    * Key names must be in quotes and are not case sensitive.
+    * Avoid keyboard shortcuts that are in use by the macro application.
+    * Ensure that hotkeys, game keys, and the game's own hotkeys have separate bindings.
+    * Release any modifier keys during playback or else the sent keystrokes will also be modified.
+    * Game keys are assigned the same way as hotkeys but with no modifiers allowed.
+    * Special keys are designated by the following names:
+
+`Space, Enter, Backspace, Delete, Up, Down, Left, Right, Home, End, Escape, Insert, Pgup, Pgdn, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Tab, Printscreen, Pause, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, NumpadMult, NumpadAdd, NumpadSub, NumpadDiv, NumpadDot, NumpadEnter`
+
+=== Examples ===
+
+    * `"q"`
+    * `"Shift+;"`
+    * `"ctrl+NUMPAD0"`
+    * `"Ctrl+Alt+Shift+Backspace"`
