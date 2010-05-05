@@ -1,0 +1,9 @@
+# sample macro for autoit keysender script
+
+# jump right, j.HK
+W30,_U_R,W10,*W20,6,
+
+# c.MP xx shinkuu hadouken
+W20,D2.DR.R.D.DR.R.1.
+
+! end of script
