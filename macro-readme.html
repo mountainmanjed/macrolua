@@ -15,71 +15,67 @@ table, td, th { border: 1px solid black ; }
 td, th { padding: 4px ; }
 th { text-align: center ; }
 h6 { margin: 0 ; text-align: right ; }
-.emu { font-weight: bold ; width: 14% ; }
-.yes { background-color: #BBFFBB ; }
-.no { background-color: #FFBBBB ; }
-.meh { background-color: #BBBBBB ; }
-.foot { vertical-align: super ; font-size: 60% ; }
-#foot { font-size: 80% ; }
-#feat { list-style-type: upper-alpha ; }
+.disclaimer { font-weight: bold ; font-size: 80% ; text-align: center ; }
 </style>
-<title>MacroLua Documentation</title>
+<title>AutoMacro Documentation</title>
 </head>
 
 <body>
-<h1>MacroLua Documentation</h1>
+<h1>AutoMacro Documentation</h1>
 
-<h2><a name="TOC"/>Contents</h2>
-<ul>
+<h2><a name="TOC"/>Contents</h2><ul>
 <li><a href="#intro">Introduction</a></li>
-<li><a href="#usage">How to use macros</a>
-<ul>
-<li><a href="#playback">How to play back</a></li>
-<li><a href="#record">How to record</a></li>
-<li><a href="#keys" />Key bindings</li>
-<li><a href="#savestates" />Savestates</li>
-</ul></li>
-<li><a href="#write">How to read and write macros</a></li>
-<li><a href="#modules">How to add control modules</a></li>
-<li><a href="#mutebgm">How to mute the background music in FBA</a></li>
-<li><a href="#emus">Lua feature availability in each emulator</a></li>
+<li><a href="#usage">Using the program</a></li>
+<li><a href="#format">Writing scripts</a></li>
+<li><a href="#settings">Configuring the settings</a></li>
 </ul>
+
+<hr />
 
 <h2><a name="intro" />Introduction</h2>
-<p>The purpose of this Lua script is to play back and record sequences of button presses in a compact format that is easily readable and editable. Some applications:</p>
-<ul>
-<li>a functional, parseable markup that doubles as a shorthand transcript notation, good for fighting game combo videos</li>
-<li>a converter that can change an input sequence from a cryptic format such as <a href="http://code.google.com/p/fbarr/wiki/FBMfileformat">FBM</a> to a human readable one for further editing</li>
-<li>a converter that can change an input sequence from one emulator to another</li>
+<p>AutoMacro is a program to script and execute precise sequences of commands in PC games. It was created with <a href="http://www.autoitscript.com/autoit3/index.shtml">AutoIt3.</a></p>
+<p>This program requires the following things of your game or emulator to work:</p><ul>
+<li>It must be running on your PC.</li>
+<li>It must be running at full speed or at least constant speed.</li>
+<li>It must allow all players to be controlled by the keyboard simultaneously.<ul>
+<li>There is a patch available that enables the PC version of Street Fighter IV to do this:</li>
+<li><a href="http://forum.arcadecontrols.com/index.php?topic=96377.0">http://forum.arcadecontrols.com/index.php?topic=96377.0</a></li></ul></li>
 </ul>
 
-<p>MacroLua is portable to any emulator equipped with the core EmuLua functions. It can still work in a limited capacity if some of the functions are missing.</p>
+<p class="disclaimer">This tool is not intended for use in competitive or online play.<br />
+Any videos produced with the aid of this program should disclose that they are tool-assisted.</p>
 
-<h2><a name="usage" />How to use macros</h2>
-<p>Download and set up one of the supported <a href="#emus">emulators</a>. Choose the latest available version.</p>
+<hr />
 
-<p>Extract the macro archive contents into the emulator's folder. Open <b>macro-options.lua</b> with a text editor and ensure that the macrofile to be played and the path settings are correct. The default path looks for the macros in a folder called <b>./macro</b>.</p>
+<h2><a name="usage" />Using the program</h2>
+<h3>Basic usage</h3>
+<p>Open AutoMacro. This will generate a <i>macro.ini</i> file if one doesn't exist. Configure the gamekeys in <i>macro.ini</i> to match the settings in your game or emulator. Using a plain text editor, compose a script that will try to perform the desired sequence of commands. Save it as a <i>.mis</i> file. Open the program and load the script. This can be done by browsing for it (Ctrl+O), typing the filename into the bar, or by dragging and dropping the file onto the bar.</p>
 
-<p>Run the emulator and open the game. Find <i>Lua Scripting</i> in the menus and open a script window. Browse for <b>macro.lua</b> and run it. If there's a gamekey definition module available for your game, it is identified in the output console. In the case of FBA-rr, the <b>input display.lua</b> script is run alongside the macro script.</p>
+<p>Once you have the settings configured and a script loaded, you are ready to start sending the commands to the game. Make the game window active or full screen and get to the part where you want the sequence to begin. Enter the startkey and the action will proceed. When it's finished you can enter the startkey again to repeat the sequence. To stop it before it's complete, press the startkey again or the stopkey. You can make changes to the script file, reload it, and try again until the results are acceptable.</p>
 
-<h3><a name="playback" />How to play back</h3>
-<p>Get to the desired point in the game and press the start key (semicolon) to start playback. The emulator must be unpaused for this start key to be read. Alternatively, pause and then hold the start key while advancing a frame. The macro specified will be analyzed, and warnings appear in the output console if it is misformatted. The macro will play to completion as the game runs normally or in frame advance.</p>
+<h3>Other functions</h3>
+<p><b>Reload script</b> (F5) reparses the currently loaded script file or <b>Reload macro.ini</b> (Ctrl+F5) to reread the settings file. These things can be done automatically with the <code>autoreload</code> option.</p>
 
-<p>You may replay the macro repeatedly. You may cut the playback short by pressing the start key again before playback is complete. You may also edit the macro file and play the new macro without reloading the script.</p>
+<p><b>Edit script</b> (F6) or <b>Edit macro.ini</b> (Ctrl+F6) opens these files with Notepad for quick editing.</p>
 
-<h3><a name="record" />How to record</h3>
-<p>Get to the desired point in the game and press the record key (quote) to start recording. Any keys input by the player(s), by keypress recordings such as FBM, or even by a playing macro will be recorded. Pressing the record key again stops and writes the recording to a <b>.mis</b> file named after the date and time. If multiple players were recorded, the macro is output in asynchronous (bracket) format.</p>
+<p><b>Analyze script</b> (F7) opens a window with details about the currently loaded script. This function is useful for diagnosing problems.</p><ul>
+<li><b>Raw string</b> shows the text of the file before any processing.</li>
+<li><b>Processed string</b> shows the result after stripping unknown or commented text, and after expanding the shorthand for waits and loops.</li>
+<li><b>Input stream</b> shows a frame-by-frame table of what inputs are active.</li>
+<li><b>Delta stream</b> shows a frame-by-frame table of what inputs are activated or released.</li>
+<li><b>Command queue</b> shows the list of the commands to be executed by AutoIt.</li>
+</ul>
 
-<h3><a name="keys" />Key bindings</h3>
-<p>If the emulator supports <code>input.registerhotkey()</code>, the keys to start and stop macros are Lua hotkeys 1 and 2 rather than semicolon and quote. These keys can be bound in the emulator's hotkey configuration. In this case, macros can be started and stopped while the game is paused, and it is not necessary to hold the hotkeys while frame advancing.</p>
+<p><b>Report current settings</b> (Ctrl+F7) outputs the configuration to the console. You can confirm that your gamekeys and other settings are configured properly this way.</p>
+<ul><li>The hotkey bindings are shown in AutoIt's own format. They also appear in the File menu as written literally. They are greyed out because they are not intended to be activated this way.</li></ul>
 
-<h3><a name="savestates" />Savestates</h3>
-<p>If the emulator supports <code>savestate.registersave()</code> and <code>savestate.registerload()</code>, the progress of any macros being played or recorded is saved alongside the savestate. Loading this savestate also restores the progress and the playing/recording status. If those functions are not supported, loading a savestate during a macro will cause a desync.</p>
-<p>Savestate operations may be invoked manually or written into the script. They are not recorded in macro recording mode.</p>
+<p><b>Unload script</b> (F8) clears the currently loaded script file.</p>
 
-<h2><a name="write" />How to read and write macros</h2>
-<p>You may produce macros by recording them or by writing them out according to the format below.</p>
-<p>In the following commands, <code>n</code> represents a number and <code>k</code> represents a key (direction, button or switch) defined by the game's <a href="#modules">module</a>.</p>
+<hr />
+
+<h2><a name="format" />Writing scripts</h2>
+<p>This section explains the script format.</p>
+<p>In the following commands, <code>n</code> represents a number and <code>k</code> represents a key symbol (direction or button) defined in the settings file.</p>
 <table>
 <tr><th><code>k</code></th>
 <td>Input the gamekey <code>k</code>. The key is pressed for the current frame only and then released.</td></tr>
@@ -126,15 +122,6 @@ h6 { margin: 0 ; text-align: right ; }
 <li>The <code>+-</code> symbols are ignored inside brackets.</li>
 </ul></td></tr>
 
-<tr><th><code>$n</code></th>
-<td>Save the current state to slot <code>n</code>. This can save checkpoints in a long sequence of commands.</td></tr>
-<tr><th><code>&amp;n</code></th>
-<td>Load savestate slot <code>n</code>. This is useful to put in the first frame.</td></tr>
-<tr><td colspan="2">
-<p>Save and load operations are performed one frame before the game inputs at the same position. For example, a state operation placed between the second and third dots is done after the second frame advance, while the game inputs there are done after the third. This behavior allows operations to be scripted on the zeroth frame of the macro, resulting in a movie that effectively starts from savestate.</p>
-<p>Each emulator has its own limit on savestate indexes.</p>
-</td></tr>
-
 <tr><th><code>()n</code></th>
 <td>Repeat the commands enclosed in the parentheses <code>n</code> times. Loops can be nested.</td></tr>
 
@@ -145,65 +132,69 @@ h6 { margin: 0 ; text-align: right ; }
 <td>End the macro. Any content after the end is ignored by the script, and can be used as comments.<br />Don't forget to advance at least one frame after the last input and before the end.</td></tr>
 </table>
 
-<p>Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a <code>W</code>) and numerical key presses.</p>
+<p>Macros are case insensitive. Commas, whitespaces, tabs and line breaks can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a <code>W</code>) and numerical key presses.</p>
 
 <p>Analog inputs are not (yet) supported.</p>
 
-<h2><a name="modules" />How to add control modules</h2>
-<p>The available gamekeys depend on the game and system. More gamekey sets can be added as modules. The traditional format is <code>U</code>,<code>D</code>,<code>L</code>,<code>R</code> for up, down, left and right, and numbers counting up from <code>1</code> for the buttons. The non-arcade systems have a single keyset for all games, so the format only needs to be defined once. However, there are many undefined arcade profiles.</p>
+<hr />
 
-<p>To add an unsupported game, run it in FBA-rr and go to <i>Input > Map Game Inputs</i> and note the names. Open <b>macro-modules.lua</b> with an editor. Copy and paste one of the existing profiles as a template. Edit the first line to give it a reasonable name, and ensure that the first character is the number of players. Edit the things on the right to match the game inputs, and ensure that the first part of any player-specific key starts with <code>P#</code>. Remove any lines for keys that don't exist. You may also edit the characters on the left to suit your preference. These are the characters to be typed in the macros.</p>
+<h2><a name="settings" />Configuring the settings</h2>
+<p>The <i>macro.ini</i> file contains the user's settings. If it doesn't exist it will be created when running AutoMacro, and you can restore the default settings by removing the file.</p>
+<table>
+<tr><th><code>macrofile</code></th>
+<td>This is the script that will be loaded automatically when starting the program. It can be left blank.</td></tr>
+<tr><th><code>targetwindow</code></th>
+<td>This is the text that must appear in the title bar of the active window in order for your script to be sent. Partial matches are OK, and it can be left blank.
+<ul><li>Using this is recommended to avoid accidentally sending keystrokes to other programs.</li></ul></td></tr>
+<tr><th><code>startkey</code></th>
+<td>This is the hotkey or key combination to start playing, or to stop if currently playing.</td></tr>
+<tr><th><code>stopkey</code></th>
+<td>Press this to stop if currently playing.</td></tr>
+<tr><th><code>framelength</code></th>
+<td>This is a number or numerical expression that defines how long a frame is in milliseconds. Games typically run at 60 frames per second (a frame length of 1000/60 ms) or else just under 60 fps.
+<br />This value should only be adjusted if the scripted input seems to run at the wrong speed.</td></tr>
+<tr><th><code>nplayers</code></th>
+<td>Most games of interest are for two players, but any number can be supported.</td></tr>
+<tr><th><code>nkeys</code></th>
+<td>This is the number of keys (directions and buttons) for each player.
+<br />Avoid setting <code>nplayers</code> and <code>nkeys</code> higher than necessary or parsing will be slower.</td></tr>
+<tr><th><code>gamekeys</code></th>
+<td>This table determines the mappings for each key and for each player.<ul>
+<li>The first column is a descriptive name for the command.</li>
+<li>The next column is the single-character, case-insensitive symbol to write in the script to perform that command.<ul>
+<li>Do not use these reserved characters: <code>w W . , _ ^ * + - &lt; / &gt; ( ) $ &amp; # !</code></li></ul></li>
+<li>The remaining columns are the corresponding key bindings assigned for each player.</li>
+<li>There must be a minimum of one column for each player (plus the first two columns) and one row for each key.</li>
+<li>Each entry on a row must be separated by blank space.</li>	
+</ul></td></tr>
+<tr><th><code>autoreload</code></th>
+<td>If this is <code>true</code>, the program automatically reloads the script and the settings file when changes are made.<br />If it is <code>false</code> they have to be reloaded manually.</td></tr>
+<tr><th><code>showlinenumbers</code></th>
+<td>Set to <code>true</code> or <code>false</code>, this determines whether the frame numbers are displayed for the input stream and delta stream in the script analysis window.</td></tr>
+<tr><th><code>maxwarnings</code></th>
+<td>This is the maximum number of formatting problems (such as unknown symbols) that will be found before the parser stops trying to read a script.</td></tr>
+</table>
 
-<p>If no module is working for your game, errors explaining the failure of each available module are output to the console.</p>
+<h3>Assigning hotkeys and game keys</h3>
+<ul><li>Most keyboard keys can be assigned to the hotkey functions, optionally combined with <code>Shift+</code>, <code>Ctrl+</code> and <code>Alt+</code> modifiers.</li>
+<li>Key names must be in quotes and are not case sensitive.</li>
+<li>Avoid keyboard shortcuts that are in use by the macro application.</li>
+<li>Ensure that hotkeys, game keys, and the game's own hotkeys have separate bindings.</li>
+<li>Release any modifier keys during playback or else the sent keystrokes will also be modified.</li>
+<li>Game keys are assigned the same way as hotkeys but with no modifiers allowed.</li>
+<li>Special keys are designated by the following names:</li>
+</ul>
 
-<h2><a name="mutebgm" />How to mute the background music in FBA</h2>
-<p>You may want to record videos with the sound effects but without the music. The reliable method to disable music is with a cheat code: The memory addresses that control music are forced to hold values that prevent it from playing.</p>
+<p><code>Space, Enter, Backspace, Delete, Up, Down, Left, Right, Home, End, Escape, Insert, Pgup, Pgdn, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, Tab, Printscreen, Pause, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, NumpadMult, NumpadAdd, NumpadSub, NumpadDiv, NumpadDot, NumpadEnter</code></p>
 
-<p>Find the code that works for your game in the <b>./cheats/mutecodes.txt</b> file provided. Copy the code into an .ini file that matches the rom's short name, for example: "sfa3.ini". You may augment this file with other codes as well. Then run the rom (restart if already running) and find <i>Enable Cheats</i> in the <i>Misc</i> menu. If the .ini is properly formatted, the option is available. Click the music entry and select the disable option from the dropbox.</p>
+<h3>Examples</h3>
+<ul>
+<li><code>"q"</code></li>
+<li><code>"Shift+;"</code></li>
+<li><code>"ctrl+NUMPAD0"</code></li>
+<li><code>"Ctrl+Alt+Shift+Backspace"</code></li>
+</ul>
 
-<p>Not all games have known mute codes. You can request more at <a href="http://cheat.retrogames.com/">Pugsy's site</a>.</p>
-
-<h2><a name="emus" />Lua feature availability in each emulator</h2>
-<table width="100%">
-<tbody align="center">
-<tr><td colspan="2">emulator</td>
-<td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td>
-<td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td>
-<td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td>
-</tr>
-<tr><td colspan="2">version tested</td><td>0.0.4.01</td><td>0.1.3</td><td>11a</td><td>1.43 v17 r123<br />1.51 v6 r113<a class="foot" href="#1">[1]</a></td><td>v22 r203</td><td>2.1.3</td><td>r128</td></tr>
-<tr><th>A</th><td><code>emu</code> alias</td><td class="yes"><code>fba</code></td><td class="yes"><code>pcsx</code></td><td class="yes"><code>gens</code></td><td class="yes"><code>snes9x</code></td><td class="yes"><code>vba</code></td><td class="yes"><code>FCEU</code></td><td class="no">×</td></tr>
-<tr><th rowspan="2">B</th><td><code>input.registerhotkey()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="yes">○</td></tr>
-<tr><td><code>input.get()</code></td><td class="yes">○</td><td class="yes">○</td><td class="meh">n/a</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="meh">n/a</td></tr>
-<tr><th>C</th><td>lua+user input</td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
-<tr><th>D</th><td><code>savestate.registersave()<br />savestate.registerload()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">○<a class="foot" href="#2">[2]</a></td><td class="yes">○</td></tr>
-<tr><th rowspan="2">E</th><td><code>emu.registerstart()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
-<tr><td>(name function)</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
-</tbody></table>
-
-<p>Elements A&ndash;B are the minimum required.</p>
-
-<ol id="feat">
-<li>Lua identifies what the emulator is by the name of this table.</li>
-<li>This enables the user to start and stop recording while paused.
-<ul><li>If <code>input.registerhotkey()</code> is unavailable, <code>input.get()</code> is the fallback. It has the same function but cannot be done while paused.</li></ul></li>
-<li>The emulator may take input from both a Lua script and the user simultaneously.</li>
-<li>The user may load savestates while playing or recording without losing progress. (i.e., bulletproof recording)</li>
-<li>The script automatically determines the new game name and control scheme when a new game is loaded.
-<ul><li>No such function that returns the name of the game currently exists.</li></ul></li>
-</ol>
-
-<p><b><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></b>, <b><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></b> and <b><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></b> do not support Lua whatsoever.</p>
-
-<div id="foot"><ol>
-<li><a name="1"></a>snes9x 1.51 only accepts Lua input from within a <code>while true do</code> loop, so playback won't work.</li>
-<li><a name="2"></a>Loading savestates via Lua crashes FCEUX.</li>
-</ol></div>
-
-<h6>4/13/2010</h6>
+<h6>5/4/2010</h6>
 </body>
 </html>
