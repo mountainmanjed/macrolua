@@ -105,21 +105,22 @@ The _macro.ini_ file contains the user's settings. If it doesn't exist it will b
 
     * The first column is a descriptive name for the command.
     * The next column is the single-character, case-insensitive symbol to write in the script to perform that command.
-          o Do not use these reserved characters: `w W . , _ ^ * + - < / > ( ) $ & # !`
+          o Do not use these reserved characters: `w W . , _ ^ * + - < / > ( ) # ! "`
     * The remaining columns are the corresponding key bindings assigned for each player.
     * There must be a minimum of one column for each player (plus the first two columns) and one row for each key.
     * Each entry on a row must be separated by blank space.
 
+||*`maxwarnings`*||This is the maximum number of formatting problems (such as unknown symbols) that will be found before the parser stops trying to read a script.||
 ||*`autoreload`*||If this is `true`, the program automatically reloads the script and the settings file when changes are made. If it is `false` they have to be reloaded manually.||
 ||*`showlinenumbers`*||Set to `true` or `false`, this determines whether the frame numbers are displayed for the input stream and delta stream in the script analysis window.||
-||*`maxwarnings`*||This is the maximum number of formatting problems (such as unknown symbols) that will be found before the parser stops trying to read a script.||
+||*`framemame`*||Set to `true` only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as `false`.||
 
 === Assigning hotkeys and game keys ===
 
     * Most keyboard keys can be assigned to the hotkey functions, optionally combined with `Shift+`, `Ctrl+` and `Alt+` modifiers.
     * Key names must be in quotes and are not case sensitive.
-    * Avoid keyboard shortcuts that are in use by the macro application.
     * Ensure that hotkeys, game keys, and the game's own hotkeys have separate bindings.
+      * However, if using an emulator with savestates, try this:<br />Make a savestate before the action, and set the startkey to match the loadstate key. This will make retries easier.
     * Release any modifier keys during playback or else the sent keystrokes will also be modified.
     * Game keys are assigned the same way as hotkeys but with no modifiers allowed.
     * Special keys are designated by the following names:
@@ -129,6 +130,6 @@ The _macro.ini_ file contains the user's settings. If it doesn't exist it will b
 === Examples ===
 
     * `"q"`
-    * `"Shift+;"`
+    * `"SHIFT+;"`
     * `"ctrl+NUMPAD0"`
     * `"Ctrl+Alt+Shift+Backspace"`
