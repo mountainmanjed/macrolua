@@ -1,0 +1,35 @@
+#summary List of changes since first release
+#labels Featured
+
+<wiki:toc max_depth="2" />
+
+----
+= !MacroLua =
+
+== v1.01, 5/5/2010 ==
+
+=== New feature: ===
+ * frameMAME compatibility option
+   * This lets the user choose whether the parser should ignore frameMAME audio commands in the script or treat them as ordinary commands
+
+== 4/13/2010 ==
+
+=== Initial public release ===
+
+----
+= !AutoMacro =
+
+== v1.01, 5/5/2010 ==
+
+=== Problems fixed: ===
+ * `macrofile` setting not applied
+ * crash if `nplayers` or `nkeys` exceed defaults
+ * crash if script contains no commands
+ * "Unloading script" message even when no script is loaded
+
+=== New feature: ===
+ * frameMAME compatibility option
+
+== v1.0, 5/4/2010 ==
+
+=== Initial public release ===
