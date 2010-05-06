@@ -1,6 +1,6 @@
 local $appname = "AutoMacro"
-local $version = "1.0"
-local $verdate = "5/3/2010"
+local $version = "1.01"
+local $verdate = "5/5/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
 
@@ -58,7 +58,7 @@ local $maxnplayers = 10, $maxnkeys = 20
 
 ; Array that determines what gets loaded from the ini
 ; Second column describes what format is expected
-local $settings[10][2] = [ _
+local $settings[11][2] = [ _
 	[      "macrofile", -3], _
 	[   "targetwindow", -3], _
 	[       "startkey", -3], _
@@ -66,9 +66,10 @@ local $settings[10][2] = [ _
 	[    "framelength", -1], _
 	[       "nplayers", $maxnplayers], _
 	[          "nkeys", $maxnkeys], _
+	[    "maxwarnings",  0], _
 	[     "autoreload", -2], _
 	["showlinenumbers", -2], _
-	[    "maxwarnings", 0]]
+	[      "framemame", -2]]
 	
 ; These values will be used in case of invalid ini values
 local $macrofile = "sample.mis", $targetwindow = "", $startkey = "Ctrl+P", $stopkey = "Ctrl+S"
@@ -84,7 +85,7 @@ local $gamekeys[$nkeys][$nplayers+2] = [ _
 	[     "short", "4",     "z",       "b"], _
 	[   "forward", "5",     "x",       "n"], _
 	["roundhouse", "6",     "c",       "m"]]
-local $autoreload = true, $showlinenumbers = true, $maxwarnings = 20
+local $autoreload = true, $showlinenumbers = true, $maxwarnings = 20, $framemame = false
 
 ; Table of special key names
 local $spkeys = "(SPACE|ENTER|BACKSPACE|BS|DELETE|DEL|UP|DOWN|LEFT|RIGHT|HOME|END|ESCAPE|ESC|" & _
@@ -164,7 +165,7 @@ guictrlsetonevent(guictrlcreatemenuitem("About", $helpmenu), "showabout")
 
 guictrlcreatelabel("Script file", 4, 8)
 guictrlsetresizing(-1, $gui_dockleft + $gui_docktop + $gui_dockwidth + $gui_dockheight)
-local $filebar = guictrlcreateinput($macrofile, -1, 24, $mainx-8)
+local $filebar = guictrlcreateinput("", -1, 24, $mainx-8)
 guictrlsetresizing(-1, $gui_dockleft + $gui_dockright + $gui_docktop + $gui_dockheight)
 guictrlsetstate(-1, $gui_dropaccepted)
 guictrlsetonevent(-1, "dragndrop")
@@ -284,10 +285,10 @@ func setstatus(byref $s)
 			$viewarray[$i][1] = ""
 		next
 		guictrlsetdata($framebox, "")
-		if $s = 0 then message("Unloading script.")
 	else
 		guictrlsetdata($framebox, $macrosize & " frames ")
 	endif
+	if $s = 0 and $status > 1 then message("Unloading script.")
 	leftchoice()
 	rightchoice()
 	guictrlsetdata($statusbox, $statusarray[$s])
@@ -428,7 +429,7 @@ func loadsettings()
 	if not fileexists($configfile) then
 		message($configfile & " not found. Creating a new one.")
 		local $configtext = '' _
-'; Settings file for AutoIt macro player' & $l & _
+'; Settings file for AutoMacro' & $l & _
 '; Remove this file to restore all defaults.' & $l & $l & _
 '; For help please read the documentation.' & $l & $l & _
 '[Settings]' & $l & $l & _
@@ -462,12 +463,14 @@ func loadsettings()
 'key 8  = "      short    4        z          b "' & $l & _
 'key 9  = "    forward    5        x          n "' & $l & _
 'key 10 = " roundhouse    6        c          m "' & $l & $l & _
+'; Maximum number of script warnings before stopping (set to 0 for no limit)' & $l & _
+'maxwarnings = 20' & $l & $l & _
 '; Auto reload the loaded script if it is changed' & $l & _
 'autoreload = true' & $l & $l & _
 '; Style of the text in the script analysis window' & $l & _
 'showlinenumbers = true' & $l & $l & _
-'; Maximum number of script warnings before stopping (set to 0 for no limit)' & $l & _
-'maxwarnings = 20' & $l & _
+'; remove frameMAME audio commands from script (leave as false unless using frameMAME scripts)' & $l & _
+'framemame = false' & $l & _
 
 		local $inihandle = fileopen($configfile, 2)
 		filewrite($inihandle, $configtext)
@@ -526,6 +529,7 @@ func loadsettings()
 	next
 
 ; Load gamekeys
+	dim $gamekeys[$nkeys][$nplayers+2]
 	for $k = 0 to $nkeys-1
 		local $keystring = iniread($configfile, "settings", "key " & $k+1, "missing")
 		local $defaultkeystring = ""
@@ -556,6 +560,7 @@ func loadsettings()
 		next
 	next
 
+	guictrlsetdata($filebar, $macrofile)
 	applyhotkey($startkey, "playback", $startitem, "Start sending", 0)
 	applyhotkey($stopkey, "stopplayback", $stopitem, "Stop sending", 1)
 	$configtimestamp = filegettime($configfile, 0, 1)
@@ -622,7 +627,7 @@ func loadscript($file)
 	$macro = stringupper($macro)
 
 ; Remove frameMAME audio commands
-	$macro = stringregexpreplace($macro, "A[M!]|A[CS]\s?\d+|AR\s?\d+\s\d+", "")
+	if $framemame then $macro = stringregexpreplace($macro, "A[M!]|A[CS]\s?\d+|AR\s?\d+\s\d+", "")
 
 ; Replace line breaks with commas
 	$macro = stringregexpreplace($macro, "[\r\n]", ",")
@@ -770,7 +775,11 @@ func loadscript($file)
 	$deltadump &= "|" & $l
 
 ; Remove the last element (always empty) from $comqueue
-	redim $comqueue[ubound($comqueue)-1]
+	if ubound($comqueue) > 1 then
+		redim $comqueue[ubound($comqueue)-1]
+	else
+		warning("There are zero commands in this script.")
+	endif
 
 ; Produce the command queue string from the array
 	for $e in $comqueue
