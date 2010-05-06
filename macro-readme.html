@@ -54,9 +54,9 @@ Any videos produced with the aid of this program should disclose that they are t
 <p>Once you have the settings configured and a script loaded, you are ready to start sending the commands to the game. Make the game window active or full screen and get to the part where you want the sequence to begin. Enter the startkey and the action will proceed. When it's finished you can enter the startkey again to repeat the sequence. To stop it before it's complete, press the startkey again or the stopkey. You can make changes to the script file, reload it, and try again until the results are acceptable.</p>
 
 <h3>Other functions</h3>
-<p><b>Reload script</b> (F5) reparses the currently loaded script file or <b>Reload macro.ini</b> (Ctrl+F5) to reread the settings file. These things can be done automatically with the <code>autoreload</code> option.</p>
+<p><b>Reload script</b> (F5) reparses the currently loaded script file and <b>Reload macro.ini</b> (Ctrl+F5) rereads the settings file. These things can be done automatically with the <code>autoreload</code> option.</p>
 
-<p><b>Edit script</b> (F6) or <b>Edit macro.ini</b> (Ctrl+F6) opens these files with Notepad for quick editing.</p>
+<p><b>Edit script</b> (F6) and <b>Edit macro.ini</b> (Ctrl+F6) opens these files with Notepad for quick editing.</p>
 
 <p><b>Analyze script</b> (F7) opens a window with details about the currently loaded script. This function is useful for diagnosing problems.</p><ul>
 <li><b>Raw string</b> shows the text of the file before any processing.</li>
@@ -162,24 +162,26 @@ Any videos produced with the aid of this program should disclose that they are t
 <td>This table determines the mappings for each key and for each player.<ul>
 <li>The first column is a descriptive name for the command.</li>
 <li>The next column is the single-character, case-insensitive symbol to write in the script to perform that command.<ul>
-<li>Do not use these reserved characters: <code>w W . , _ ^ * + - &lt; / &gt; ( ) $ &amp; # !</code></li></ul></li>
+<li>Do not use these reserved characters: <code>w W . , _ ^ * + - &lt; / &gt; ( ) # ! "</code></li></ul></li>
 <li>The remaining columns are the corresponding key bindings assigned for each player.</li>
 <li>There must be a minimum of one column for each player (plus the first two columns) and one row for each key.</li>
 <li>Each entry on a row must be separated by blank space.</li>	
 </ul></td></tr>
+<tr><th><code>maxwarnings</code></th>
+<td>This is the maximum number of formatting problems (such as unknown symbols) that will be found before the parser stops trying to read a script.</td></tr>
 <tr><th><code>autoreload</code></th>
 <td>If this is <code>true</code>, the program automatically reloads the script and the settings file when changes are made.<br />If it is <code>false</code> they have to be reloaded manually.</td></tr>
 <tr><th><code>showlinenumbers</code></th>
 <td>Set to <code>true</code> or <code>false</code>, this determines whether the frame numbers are displayed for the input stream and delta stream in the script analysis window.</td></tr>
-<tr><th><code>maxwarnings</code></th>
-<td>This is the maximum number of formatting problems (such as unknown symbols) that will be found before the parser stops trying to read a script.</td></tr>
+<tr><th><code>framemame</code></th>
+<td>Set to <code>true</code> only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as <code>false</code>.</td></tr>
 </table>
 
 <h3>Assigning hotkeys and game keys</h3>
 <ul><li>Most keyboard keys can be assigned to the hotkey functions, optionally combined with <code>Shift+</code>, <code>Ctrl+</code> and <code>Alt+</code> modifiers.</li>
 <li>Key names must be in quotes and are not case sensitive.</li>
-<li>Avoid keyboard shortcuts that are in use by the macro application.</li>
-<li>Ensure that hotkeys, game keys, and the game's own hotkeys have separate bindings.</li>
+<li>Ensure that hotkeys, game keys, and the game's own hotkeys have separate bindings.<ul>
+<li>However, if using an emulator with savestates, try this:<br />Make a savestate before the action, and set the startkey to match the loadstate key. This will make retries easier.</li></ul></li>
 <li>Release any modifier keys during playback or else the sent keystrokes will also be modified.</li>
 <li>Game keys are assigned the same way as hotkeys but with no modifiers allowed.</li>
 <li>Special keys are designated by the following names:</li>
@@ -190,11 +192,11 @@ Any videos produced with the aid of this program should disclose that they are t
 <h3>Examples</h3>
 <ul>
 <li><code>"q"</code></li>
-<li><code>"Shift+;"</code></li>
+<li><code>"SHIFT+;"</code></li>
 <li><code>"ctrl+NUMPAD0"</code></li>
 <li><code>"Ctrl+Alt+Shift+Backspace"</code></li>
 </ul>
 
-<h6>5/4/2010</h6>
+<h6>5/5/2010</h6>
 </body>
 </html>
