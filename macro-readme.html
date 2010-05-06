@@ -45,6 +45,8 @@ h6 { margin: 0 ; text-align: right ; }
 <li><a href="#emus">Lua feature availability in each emulator</a></li>
 </ul>
 
+<hr />
+
 <h2><a name="intro" />Introduction</h2>
 <p>The purpose of this Lua script is to play back and record sequences of button presses in a compact format that is easily readable and editable. Some applications:</p>
 <ul>
@@ -54,6 +56,8 @@ h6 { margin: 0 ; text-align: right ; }
 </ul>
 
 <p>MacroLua is portable to any emulator equipped with the core EmuLua functions. It can still work in a limited capacity if some of the functions are missing.</p>
+
+<hr />
 
 <h2><a name="usage" />How to use macros</h2>
 <p>Download and set up one of the supported <a href="#emus">emulators</a>. Choose the latest available version.</p>
@@ -76,6 +80,8 @@ h6 { margin: 0 ; text-align: right ; }
 <h3><a name="savestates" />Savestates</h3>
 <p>If the emulator supports <code>savestate.registersave()</code> and <code>savestate.registerload()</code>, the progress of any macros being played or recorded is saved alongside the savestate. Loading this savestate also restores the progress and the playing/recording status. If those functions are not supported, loading a savestate during a macro will cause a desync.</p>
 <p>Savestate operations may be invoked manually or written into the script. They are not recorded in macro recording mode.</p>
+
+<hr />
 
 <h2><a name="write" />How to read and write macros</h2>
 <p>You may produce macros by recording them or by writing them out according to the format below.</p>
@@ -149,6 +155,8 @@ h6 { margin: 0 ; text-align: right ; }
 
 <p>Analog inputs are not (yet) supported.</p>
 
+<hr />
+
 <h2><a name="modules" />How to add control modules</h2>
 <p>The available gamekeys depend on the game and system. More gamekey sets can be added as modules. The traditional format is <code>U</code>,<code>D</code>,<code>L</code>,<code>R</code> for up, down, left and right, and numbers counting up from <code>1</code> for the buttons. The non-arcade systems have a single keyset for all games, so the format only needs to be defined once. However, there are many undefined arcade profiles.</p>
 
@@ -156,12 +164,16 @@ h6 { margin: 0 ; text-align: right ; }
 
 <p>If no module is working for your game, errors explaining the failure of each available module are output to the console.</p>
 
+<hr />
+
 <h2><a name="mutebgm" />How to mute the background music in FBA</h2>
 <p>You may want to record videos with the sound effects but without the music. The reliable method to disable music is with a cheat code: The memory addresses that control music are forced to hold values that prevent it from playing.</p>
 
 <p>Find the code that works for your game in the <b>./cheats/mutecodes.txt</b> file provided. Copy the code into an .ini file that matches the rom's short name, for example: "sfa3.ini". You may augment this file with other codes as well. Then run the rom (restart if already running) and find <i>Enable Cheats</i> in the <i>Misc</i> menu. If the .ini is properly formatted, the option is available. Click the music entry and select the disable option from the dropbox.</p>
 
 <p>Not all games have known mute codes. You can request more at <a href="http://cheat.retrogames.com/">Pugsy's site</a>.</p>
+
+<hr />
 
 <h2><a name="emus" />Lua feature availability in each emulator</h2>
 <table width="100%">
@@ -197,6 +209,8 @@ h6 { margin: 0 ; text-align: right ; }
 <ul><li>No such function that returns the name of the game currently exists.</li></ul></li>
 </ol>
 
+<p><b><a href="http://desmume.org/">DeSmuMe</a></b> supports Lua but has not been tested.</p>
+
 <p><b><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></b>, <b><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></b> and <b><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></b> do not support Lua whatsoever.</p>
 
 <div id="foot"><ol>
@@ -204,6 +218,6 @@ h6 { margin: 0 ; text-align: right ; }
 <li><a name="2"></a>Loading savestates via Lua crashes FCEUX.</li>
 </ol></div>
 
-<h6>4/13/2010</h6>
+<h6>5/5/2010</h6>
 </body>
 </html>

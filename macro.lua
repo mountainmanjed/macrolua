@@ -1,5 +1,5 @@
 --[[
-FrameMAME-format macro player/recorder
+MacroLua: macro player/recorder for emulators with Lua
 http://code.google.com/p/macrolua/
 Original FrameMAME implementation by crowbait
 Lua conversion written by Dammit (dammit9x at hotmail dot com)
@@ -12,8 +12,8 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "4/13/2010"
-print("LuaMacro v."..version)
+local version = "1.01, 5/5/2010"
+print("MacroLua v"..version)
 dofile("macro-options.lua","r")
 dofile("macro-modules.lua","r")
 if fba and showfbainput then dofile("input display.lua","r") end
@@ -229,9 +229,11 @@ local function parse(macro)
 	m=string.gsub(m,"#.-\n","") --Remove lines commented with "#".
 	m=string.gsub(m,"#.*","") --Remove the last line commented with "#".
 	m=string.upper(m) --Case desensitize.
-	m=string.gsub(m,"A[CS]%d+","") --Remove frameMAME audio commands.
-	m=string.gsub(m,"AR%d+.%d+","") --Remove frameMAME audio commands.
-	m=string.gsub(m,"A[M!]","") --Remove frameMAME audio commands.
+	if framemame then
+		m=string.gsub(m,"A[CS]%s?%d+","") --Remove frameMAME audio commands.
+		m=string.gsub(m,"AR%s?%d+%s%d+","") --Remove frameMAME audio commands.
+		m=string.gsub(m,"A[M!]","") --Remove frameMAME audio commands.
+	end
 	m=string.gsub(m,"(!.*)","") --Remove everything after the first "!".
 	m=string.gsub(m,"W%s?(%d+)",function(n) return string.rep(".",n) end) --Expand waits into dots.
 	while string.find(m,"%b()%s?%d+") do --Recursively..
