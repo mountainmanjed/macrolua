@@ -12,7 +12,7 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "1.01, 5/5/2010"
+local version = "1.02, 5/6/2010"
 print("MacroLua v"..version)
 dofile("macro-options.lua","r")
 dofile("macro-modules.lua","r")
@@ -244,8 +244,6 @@ local function parse(macro)
 	end
 	m=string.gsub(m,"[,%s\t\n]","") --Remove spacing/readability characters.
 
-	--**/if not string.find(m,"[%-/]") then nplayers=1 end --Simple case of only one player.
-
 	frame,macrosize,player=0,nil,1 --Initialize parameters.
 	inputstream,stateop,stateslot={},{},{}
 	inbrackets,bracket=false,{}
@@ -273,8 +271,8 @@ end
 
 local recframe,recinputstream
 local waitstring,longstring="",""
-for i=1,longwait do waitstring=waitstring.."%." end
-for i=1,longline do longstring=longstring.."[^\n]" end
+if longwait > 0 then for i=1,longwait do waitstring=waitstring.."%." end end
+if longline > 0 then for i=1,longline do longstring=longstring.."[^\n]" end end
 
 local function finalize(t)
 	if recframe==0 then
@@ -300,23 +298,25 @@ local function finalize(t)
 	end
 	
 	--Substitute _holds and ^releases for long press sequences.
-	for p=1,np do
-		for _,v in ipairs(module) do
-			local hold,release,pressed,oldpressed=0,0,false,false
-			for f=1,recframe+1 do
-				pressed=t[f] and t[f][p] and string.find(t[f][p],v[1])
-				if pressed and not oldpressed then hold=f end
-				if not pressed and oldpressed then release=f
-					if release-hold>=longpress then --only hold if the press is long
-						if not t[release] then t[release]={} end
-						if not t[release][p] then t[release][p]="" end
-						if f==recframe+1 then recframe=f end --add another frame to process the release if necessary
-						for fr=hold,release do t[fr][p]=string.gsub(t[fr][p],v[1],"") end --take away the presses
-						t[hold][p]=t[hold][p].."_"..v[1] --add the hold at the beginning
-						t[release][p]=t[release][p].."^"..v[1] --add the release at the end
+	if longpress > 0 then
+		for p=1,np do
+			for _,v in ipairs(module) do
+				local hold,release,pressed,oldpressed=0,0,false,false
+				for f=1,recframe+1 do
+					pressed=t[f] and t[f][p] and string.find(t[f][p],v[1])
+					if pressed and not oldpressed then hold=f end
+					if not pressed and oldpressed then release=f
+						if release-hold>=longpress then --only hold if the press is long
+							if not t[release] then t[release]={} end
+							if not t[release][p] then t[release][p]="" end
+							if f==recframe+1 then recframe=f end --add another frame to process the release if necessary
+							for fr=hold,release do t[fr][p]=string.gsub(t[fr][p],v[1],"") end --take away the presses
+							t[hold][p]=t[hold][p].."_"..v[1] --add the hold at the beginning
+							t[release][p]=t[release][p].."^"..v[1] --add the release at the end
+						end
 					end
+					oldpressed=pressed
 				end
-				oldpressed=pressed
 			end
 		end
 	end
@@ -343,20 +343,24 @@ local function finalize(t)
 	end
 	
 	--Collapse long waits into W's.
-	text=string.gsub(text,"([\n%.])("..waitstring.."+)",function(c,n)
-		return c.."W"..string.len(n)..","
-	end)
+	if longwait > 0 then
+		text=string.gsub(text,"([\n%.])("..waitstring.."+)",function(c,n)
+			return c.."W"..string.len(n)..","
+		end)
+	end
 	text=string.gsub(text,",\n","\n") --Remove trailing commas.
 	
 	--Break up long lines.
-	local startpos,endpos=0,0
-	local before,after=string.sub(text,1,endpos),string.sub(text,endpos+1)
-	while string.find(after,"\n("..longstring..".-),") do --Search for a long stretch w/o breaks.
-		text=before..string.gsub(after,"\n("..longstring..".-),",function(line) --Insert a break after the next comma.
-			return "\n"..line..",\n"
-		end,1) --Do this once per search.
-		startpos,endpos=string.find(text,"\n("..longstring..".-),",endpos) --Advance the start of the next search.
-		before,after=string.sub(text,1,endpos),string.sub(text,endpos+1)
+	if longline > 0 then
+		local startpos,endpos=0,0
+		local before,after=string.sub(text,1,endpos),string.sub(text,endpos+1)
+		while string.find(after,"\n("..longstring..".-),") do --Search for a long stretch w/o breaks.
+			text=before..string.gsub(after,"\n("..longstring..".-),",function(line) --Insert a break after the next comma.
+				return "\n"..line..",\n"
+			end,1) --Do this once per search.
+			startpos,endpos=string.find(text,"\n("..longstring..".-),",endpos) --Advance the start of the next search.
+			before,after=string.sub(text,1,endpos),string.sub(text,endpos+1)
+		end
 	end
 	
 	--Save the text.
