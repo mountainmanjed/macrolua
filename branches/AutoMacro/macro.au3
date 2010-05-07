@@ -1,6 +1,6 @@
 local $appname = "AutoMacro"
-local $version = "1.01"
-local $verdate = "5/5/2010"
+local $version = "1.02"
+local $verdate = "5/7/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
 
@@ -1050,6 +1050,8 @@ func playback()
 			message("User canceled playback.")
 			return
 		elseif $targetwindow and not winactive($targetwindow) then
+			$play = false
+			$stop = false
 			setstatus(4)
 			message("Stopped playback because target window lost focus.")
 			return
