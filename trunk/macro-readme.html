@@ -41,6 +41,7 @@ h6 { margin: 0 ; text-align: right ; }
 </ul></li>
 <li><a href="#write">How to read and write macros</a></li>
 <li><a href="#modules">How to add control modules</a></li>
+<li><a href="#settings" />Configuration options</li>
 <li><a href="#mutebgm">How to mute the background music in FBA</a></li>
 <li><a href="#emus">Lua feature availability in each emulator</a></li>
 </ul>
@@ -166,6 +167,37 @@ h6 { margin: 0 ; text-align: right ; }
 
 <hr />
 
+<h2><a name="settings" />Configuration options</h2>
+<p>The <b>macro-options.lua</b> file contains the user's settings. This file can be edited with any text editor. To update settings, restart the Lua script.</p>
+<table>
+<tr><td colspan="2" align="center">The first four options must be enclosed in quotes.</td></tr>
+<tr><th><code>playbackfile</code></th>
+<td>This is the filename of the script to be played.</td></tr>
+<tr><th><code>path</code></th>
+<td>This is the path where the script file is found and where recordings will be placed. The path may be either relative to <b>macro.lua</b> or absolute. Use either double forward slashes (<code>.\\path\\</code>) or single backslashes (<code>./path/</code>).</td></tr>
+<tr><th><code>playkey</code></th>
+<td>Press this key to start playing the specified script or to cancel an already playing script.</td></tr>
+<tr><th><code>recordkey</code></th>
+<td>Press this key to start recording input to a new script and to finish a recording in progress.</td></tr>
+<tr><th><code>pauseafterplay</code></th>
+<td>Set to <code>true</code> to pause after a script finishes playing or <code>false</code> to not pause.</td></tr>
+<tr><td colspan="2" align="center">After recording player input, the results are written to file. The following three options affect the style of the output:</td></tr>
+<tr><th><code>longwait</code></th>
+<td>Idle frames are collapsed into <code>Wn</code> phrases as a shorthand. This option specifies the minimum number of idle frames to trigger this. Set it to <code>0</code> to never use <code>Wn</code> phrases.</td></tr>
+<tr><th><code>longpress</code></th>
+<td>When an input is active for many consecutive frames, it is abbreviated as a <code>_k</code> at the beginning and a corresponding <code>^k</code> at the end instead of writing <code>k</code> every frame. This option specifies the minimum number of held frames to trigger this. Set it to <code>0</code> to never use <code>_k^k</code> phrases.</td></tr>
+<tr><th><code>longline</code></th>
+<td>Each player's input can be broken up into multiple lines. This option specifies the minimum number of characters to trigger a linebreak. Set it to <code>0</code> to not break up lines.</td></tr>
+<tr><th><code>showfbainput</code></th>
+<td>If set to <code>true</code>, this option runs the <b>input display.lua</b> script that is included with FBA-rr. This script shows what inputs are being pressed by the players. It has no effect for other emulators, which have their own built-in display features.</td></tr>
+<tr><th><code>framemame</code></th>
+<td>Set to <code>true</code> only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as <code>false</code>.</td></tr>
+</table>
+
+<p>The hotkeys must be selected from the following list. <b>Key names are case sensitive.</b></p>
+<p><code> shift, control, alt, capslock, numlock, scrolllock, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, backspace, tab, enter, pause, escape, space, pageup, pagedown, end, home, insert, delete, left, up, right, down, numpad0, numpad1, numpad2, numpad3, numpad4, numpad5, numpad6, numpad7, numpad8, numpad9, numpad*, numpad+, numpad-, numpad., numpad/, tilde, plus, minus, leftbracket, rightbracket, semicolon, quote, comma, period, slash, backslash</code></p>
+<hr />
+
 <h2><a name="mutebgm" />How to mute the background music in FBA</h2>
 <p>You may want to record videos with the sound effects but without the music. The reliable method to disable music is with a cheat code: The memory addresses that control music are forced to hold values that prevent it from playing.</p>
 
@@ -176,48 +208,51 @@ h6 { margin: 0 ; text-align: right ; }
 <hr />
 
 <h2><a name="emus" />Lua feature availability in each emulator</h2>
-<table width="100%">
+
+<table>
 <tbody align="center">
-<tr><td colspan="2">emulator</td>
-<td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td>
-<td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td>
-<td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td>
-<td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td>
-</tr>
-<tr><td colspan="2">version tested</td><td>0.0.4.01</td><td>0.1.3</td><td>11a</td><td>1.43 v17 r123<br />1.51 v6 r113<a class="foot" href="#1">[1]</a></td><td>v22 r203</td><td>2.1.3</td><td>r128</td></tr>
-<tr><th>A</th><td><code>emu</code> alias</td><td class="yes"><code>fba</code></td><td class="yes"><code>pcsx</code></td><td class="yes"><code>gens</code></td><td class="yes"><code>snes9x</code></td><td class="yes"><code>vba</code></td><td class="yes"><code>FCEU</code></td><td class="no">×</td></tr>
-<tr><th rowspan="2">B</th><td><code>input.registerhotkey()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="yes">○</td></tr>
-<tr><td><code>input.get()</code></td><td class="yes">○</td><td class="yes">○</td><td class="meh">n/a</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="meh">n/a</td></tr>
-<tr><th>C</th><td>lua+user input</td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
-<tr><th>D</th><td><code>savestate.registersave()<br />savestate.registerload()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">○<a class="foot" href="#2">[2]</a></td><td class="yes">○</td></tr>
-<tr><th rowspan="2">E</th><td><code>emu.registerstart()</code></td><td class="no">×</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
-<tr><td>(name function)</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><th>emulator</th><th>version tested</th><th><code>emu</code> alias</th><th>hotkey while<br />paused</th><th>lua+user<br />input</th><th>bulletproof<br />savestates</th><th>adapt to<br />ROMs</th></tr>
+
+<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td>0.0.4.01</td><td class="yes"><code>fba</code></td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
+
+<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td>0.1.3</td><td class="yes"><code>pcsx</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+
+<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td>11a</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+
+<tr><td class="emu"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td>1.43 v17 r123<br />1.51 v6 r113<a class="foot" href="#1">[1]</a></td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+
+<tr><td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td>v22 r203</td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+
+<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td>2.1.3</td><td class="yes"><code>FCEU</code></td><td class="no">×</td><td class="yes">○</td><td class="no">○<a class="foot" href="#2">[2]</a></td><td class="no">×</td></tr>
+
+<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td>r128</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
+
+<tr><th><a href="http://desmume.org/">DeSmuMe</a></th><td colspan="6">not yet tested</td></tr>
+<tr><th><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></th><td colspan="6">does not support Lua</td></tr>
+<tr><th><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></th><td colspan="6">does not support Lua</td></tr>
+<tr><th><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></th><td colspan="6">does not support Lua</td></tr>
 </tbody></table>
-
-<p>Elements A&ndash;B are the minimum required.</p>
-
-<ol id="feat">
-<li>Lua identifies what the emulator is by the name of this table.</li>
-<li>This enables the user to start and stop recording while paused.
-<ul><li>If <code>input.registerhotkey()</code> is unavailable, <code>input.get()</code> is the fallback. It has the same function but cannot be done while paused.</li></ul></li>
-<li>The emulator may take input from both a Lua script and the user simultaneously.</li>
-<li>The user may load savestates while playing or recording without losing progress. (i.e., bulletproof recording)</li>
-<li>The script automatically determines the new game name and control scheme when a new game is loaded.
-<ul><li>No such function that returns the name of the game currently exists.</li></ul></li>
-</ol>
-
-<p><b><a href="http://desmume.org/">DeSmuMe</a></b> supports Lua but has not been tested.</p>
-
-<p><b><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></b>, <b><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></b> and <b><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></b> do not support Lua whatsoever.</p>
 
 <div id="foot"><ol>
 <li><a name="1"></a>snes9x 1.51 only accepts Lua input from within a <code>while true do</code> loop, so playback won't work.</li>
 <li><a name="2"></a>Loading savestates via Lua crashes FCEUX.</li>
 </ol></div>
 
-<h6>5/5/2010</h6>
+<table>
+<tr><th><code>emu</code> alias</th>
+<td>MacroLua identifies the emulator and control scheme by the name of this table of functions.</td></tr>
+<tr><th>hotkey while paused</th>
+<td>If <code>input.registerhotkey()</code> is available, the user can start and stop recording during pause. The fallback is <code>input.get()</code>, which has the same function but cannot be done while paused.</td></tr>
+<tr><th>lua+user input</th>
+<td>The emulator may take input from both a Lua script and the user simultaneously if <code>joypad.set</code> allows it.</td></tr>
+<tr><th>bulletproof savestates</th>
+<td>The user may load savestates while playing or recording without losing progress if <code>savestate.registersave() and savestate.registerload()</code> are available.
+<br /><br />This feature has not been well tested.</td></tr>
+<tr><th>adapt to ROMs</th>
+<td>MacroLua can name recordings and reset the control scheme based on the loaded game if <code>emu.registerstart()</code> and a function that returns the name of the game are present.
+<br /><br />Only Gens has <code>emu.registerstart()</code>, and no such name-returning function currently exists.</td></tr>
+</table>
+
+<h6>5/6/2010</h6>
 </body>
 </html>
