@@ -6,9 +6,18 @@
 ----
 = !MacroLua =
 
+== v1.02, 5/6/2010 ==
+
+=== Enhancement: ===
+ * User can disable `longwait`, `longpress`, and `longline` features by setting these values to 0.
+
+=== Documentation: ===
+ * added explanation table for the config options
+ * improved the emu compatibility table
+
 == v1.01, 5/5/2010 ==
 
-=== New feature: ===
+=== Enhancement: ===
  * frameMAME compatibility option
    * This lets the user choose whether the parser should ignore frameMAME audio commands in the script or treat them as ordinary commands
 
@@ -27,7 +36,7 @@
  * crash if script contains no commands
  * "Unloading script" message even when no script is loaded
 
-=== New feature: ===
+=== Enhancement: ===
  * frameMAME compatibility option
 
 == v1.0, 5/4/2010 ==
