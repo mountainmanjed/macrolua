@@ -28,6 +28,11 @@
 ----
 = !AutoMacro =
 
+== v1.02, 5/7/2010 ==
+
+=== Problems fixed: ===
+ * cannot send anymore and must restart if the target window loses focus
+
 == v1.01, 5/5/2010 ==
 
 === Problems fixed: ===
