@@ -1,5 +1,5 @@
 local $appname = "AutoMacro"
-local $version = "1.02"
+local $version = "1.03"
 local $verdate = "5/7/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
@@ -88,8 +88,8 @@ local $gamekeys[$nkeys][$nplayers+2] = [ _
 local $autoreload = true, $showlinenumbers = true, $maxwarnings = 20, $framemame = false
 
 ; Table of special key names
-local $spkeys = "(SPACE|ENTER|BACKSPACE|BS|DELETE|DEL|UP|DOWN|LEFT|RIGHT|HOME|END|ESCAPE|ESC|" & _
-"INSERT|INS|PGUP|PGDN|F1|F2|F3|F4|F5|F6|F7|F8|F9|F10|F11|F12|TAB|PRINTSCREEN|PAUSE|" & _
+local $spkeys = "(SPACE|ENTER|BACKSPACE|BS|INSERT|INS|DELETE|DEL|HOME|END|PGUP|PGDN|" & _
+"UP|DOWN|LEFT|RIGHT|ESCAPE|ESC|F12|F11|F10|F9|F8|F7|F6|F5|F4|F3|F2|F1|TAB|PRINTSCREEN|PAUSE|" & _
 "NUMPAD0|NUMPAD1|NUMPAD2|NUMPAD3|NUMPAD4|NUMPAD5|NUMPAD6|NUMPAD7|NUMPAD8|NUMPAD9|" & _
 "NUMPADMULT|NUMPADADD|NUMPADSUB|NUMPADDIV|NUMPADDOT|NUMPADENTER)"
 
@@ -260,7 +260,7 @@ loadsettings()
 loadfilebar()
 
 while true
-	sleep(5000)
+	sleep(1000)
 	if $autoreload then
 		if $configtimestamp <> filegettime($configfile, 0, 1) then
 			message("Detected changes to config file.")
