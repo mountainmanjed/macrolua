@@ -6,7 +6,7 @@
 ----
 = Introduction =
 
-AutoMacro is a program to script and execute precise sequences of commands in PC games. It was created with [http://www.autoitscript.com/autoit3/index.shtml AutoIt3].
+!AutoMacro is a program to script and execute precise sequences of commands in PC games. It was created with [http://www.autoitscript.com/autoit3/index.shtml AutoIt3].
 
 This program requires the following things of your game or emulator to work:
 
@@ -23,7 +23,7 @@ Any videos produced with the aid of this program should disclose that they are t
 = Using the program =
 === Basic usage ===
 
-Open AutoMacro. This will generate a _macro.ini_ file if one doesn't exist. Configure the gamekeys in _macro.ini_ to match the settings in your game or emulator. Using a plain text editor, compose a script that will try to perform the desired sequence of commands. Save it as a _.mis_ file. Open the program and load the script. This can be done by browsing for it (Ctrl+O), typing the filename into the bar, or by dragging and dropping the file onto the bar.
+Open !AutoMacro. This will generate a _macro.ini_ file if one doesn't exist. Configure the gamekeys in _macro.ini_ to match the settings in your game or emulator. Using a plain text editor, compose a script that will try to perform the desired sequence of commands. Save it as a _.mis_ file. Open the program and load the script. This can be done by browsing for it (Ctrl+O), typing the filename into the bar, or by dragging and dropping the file onto the bar.
 
 Once you have the settings configured and a script loaded, you are ready to start sending the commands to the game. Make the game window active or full screen and get to the part where you want the sequence to begin. Enter the startkey and the action will proceed. When it's finished you can enter the startkey again to repeat the sequence. To stop it before it's complete, press the startkey again or the stopkey. You can make changes to the script file, reload it, and try again until the results are acceptable.
 
@@ -39,11 +39,11 @@ Once you have the settings configured and a script loaded, you are ready to star
     * *Processed string* shows the result after stripping unknown or commented text, and after expanding the shorthand for waits and loops.
     * *Input stream* shows a frame-by-frame table of what inputs are active.
     * *Delta stream* shows a frame-by-frame table of what inputs are activated or released.
-    * *Command queue* shows the list of the commands to be executed by AutoIt.
+    * *Command queue* shows the list of the commands to be executed by !AutoIt.
 
 *Report current settings* (Ctrl+F7) outputs the configuration to the console. You can confirm that your gamekeys and other settings are configured properly this way.
 
-    * The hotkey bindings are shown in AutoIt's own format. They also appear in the File menu as written literally. They are greyed out because they are not intended to be activated this way.
+    * The hotkey bindings are shown in !AutoIt's own format. They also appear in the File menu as written literally. They are greyed out because they are not intended to be activated this way.
 
 *Unload script* (F8) clears the currently loaded script file.
 
@@ -72,28 +72,28 @@ Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used 
 
 Analog inputs are not (yet) supported.
 
-=== Synchronous multi-player control with + - ===
+=== Synchronous multi-player control with `+ -` ===
 
     * Commands are applied only to the selected player.
     * Player 1 is selected by default.
-    * The + and - symbols are used to switch between players.
+    * The `+` and `-` symbols are used to switch between players.
     * Time advancement applies to all players.
     * Nonselected players can give input with their held keys.
     * To modify the input of multiple players on the same frame, switch between them before advancing frames.
 
-=== Asynchronous multi-player control with < / > ===
+=== Asynchronous multi-player control with `< / >` ===
 
     * Commands are applied only to the selected player.
     * Player 1 is selected when the brackets are opened.
-    * Control is switched to the next player after each /.
+    * Control is switched to the next player after each `/`.
     * Time advancement applies only to the selected player.
     * When the brackets are closed, time is advanced to the point of the player with the most frames, wait frames are added to the others to make up the difference, all player inputs are multiplexed, and control returns to player 1.
-    * The + - symbols are ignored inside brackets.
+    * The `+ -` symbols are ignored inside brackets.
 
 ----
 = Configuring the settings =
 
-The _macro.ini_ file contains the user's settings. If it doesn't exist it will be created when running AutoMacro, and you can restore the default settings by removing the file.
+The _macro.ini_ file contains the user's settings. If it doesn't exist it will be created when running !AutoMacro, and you can restore the default settings by removing the file.
 ||*`macrofile`*||This is the script that will be loaded automatically when starting the program. It can be left blank.||
 ||*`targetwindow`*||This is the text that must appear in the title bar of the active window in order for your script to be sent. Partial matches are OK, and it can be left blank.<br>Using this is recommended to avoid accidentally sending keystrokes to other programs.||
 ||*`startkey`*||This is the hotkey or key combination to start playing, or to stop if currently playing.||
