@@ -28,6 +28,14 @@
 ----
 = !AutoMacro =
 
+== v1.03, 5/7/2010 ==
+
+=== Problems fixed: ===
+ * cannot bind `F10`, `F11`, `F12` or `PGUP`
+
+=== Enhancement: ===
+ * reduced file update check interval from 5 sec to 1 sec. (checks only occur while idle.)
+
 == v1.02, 5/7/2010 ==
 
 === Problems fixed: ===
