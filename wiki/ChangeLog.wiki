@@ -6,6 +6,11 @@
 ----
 = !MacroLua =
 
+== v1.04, 5/11/2010 ==
+
+=== Problems fixed: ===
+ * Included the updated `input-display.lua`, which was left out of 1.03.
+
 == v1.03, 5/11/2010 ==
 
 === Problems fixed: ===
@@ -26,7 +31,7 @@
  * frameMAME compatibility option
    * This lets the user choose whether the parser should ignore frameMAME audio commands in the script or treat them as ordinary commands
 
-== 4/13/2010 ==
+== (v1.0) 4/13/2010 ==
 
 === Initial public release ===
 
