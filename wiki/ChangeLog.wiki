@@ -6,6 +6,11 @@
 ----
 = !MacroLua =
 
+== v1.03, 5/11/2010 ==
+
+=== Problems fixed: ===
+ * Thanks to a discovery by FatRatKnight, implemented hotkey while paused for FCEUX, PCSX, & FBA.
+
 == v1.02, 5/6/2010 ==
 
 === Enhancement: ===
