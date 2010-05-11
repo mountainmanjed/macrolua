@@ -6,7 +6,7 @@ You may adjust these parameters.
 ]]--
 
 -- name of the macro to be played
-playbackfile = "sf2ce-1-maj.mis"
+playbackfile = "sfz2alj-error1.mis"
 
 -- where the macro scripts are stored
 path = ".\\macro\\"

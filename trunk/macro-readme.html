@@ -51,6 +51,7 @@ h6 { margin: 0 ; text-align: right ; }
 <h2><a name="intro" />Introduction</h2>
 <p>The purpose of this Lua script is to play back and record sequences of button presses in a compact format that is easily readable and editable. Some applications:</p>
 <ul>
+<li>an alternative to using serialized rerecords for recording input, which can be easier with multiple players</li>
 <li>a functional, parseable markup that doubles as a shorthand transcript notation, good for fighting game combo videos</li>
 <li>a converter that can change an input sequence from a cryptic format such as <a href="http://code.google.com/p/fbarr/wiki/FBMfileformat">FBM</a> to a human readable one for further editing</li>
 <li>a converter that can change an input sequence from one emulator to another</li>
@@ -65,10 +66,10 @@ h6 { margin: 0 ; text-align: right ; }
 
 <p>Extract the macro archive contents into the emulator's folder. Open <b>macro-options.lua</b> with a text editor and ensure that the macrofile to be played and the path settings are correct. The default path looks for the macros in a folder called <b>./macro</b>.</p>
 
-<p>Run the emulator and open the game. Find <i>Lua Scripting</i> in the menus and open a script window. Browse for <b>macro.lua</b> and run it. If there's a gamekey definition module available for your game, it is identified in the output console. In the case of FBA-rr, the <b>input display.lua</b> script is run alongside the macro script.</p>
+<p>Run the emulator and open the game. Find <i>Lua Scripting</i> in the menus and open a script window. Browse for <b>macro.lua</b> and run it. If there's a gamekey definition module available for your game, it is identified in the output console. In the case of FBA-rr, the <b>input-display.lua</b> script is run alongside the macro script.</p>
 
 <h3><a name="playback" />How to play back</h3>
-<p>Get to the desired point in the game and press the start key (semicolon) to start playback. The emulator must be unpaused for this start key to be read. Alternatively, pause and then hold the start key while advancing a frame. The macro specified will be analyzed, and warnings appear in the output console if it is misformatted. The macro will play to completion as the game runs normally or in frame advance.</p>
+<p>Get to the desired point in the game and press the start key (semicolon) to start playback. (Some emulators must be unpaused for this start key to be read. Alternatively, pause and then hold the start key while advancing a frame.) The macro specified will be analyzed, and warnings appear in the output console if it is misformatted. The macro will play to completion as the game runs normally or in frame advance.</p>
 
 <p>You may replay the macro repeatedly. You may cut the playback short by pressing the start key again before playback is complete. You may also edit the macro file and play the new macro without reloading the script.</p>
 
@@ -76,7 +77,7 @@ h6 { margin: 0 ; text-align: right ; }
 <p>Get to the desired point in the game and press the record key (quote) to start recording. Any keys input by the player(s), by keypress recordings such as FBM, or even by a playing macro will be recorded. Pressing the record key again stops and writes the recording to a <b>.mis</b> file named after the date and time. If multiple players were recorded, the macro is output in asynchronous (bracket) format.</p>
 
 <h3><a name="keys" />Key bindings</h3>
-<p>If the emulator supports <code>input.registerhotkey()</code>, the keys to start and stop macros are Lua hotkeys 1 and 2 rather than semicolon and quote. These keys can be bound in the emulator's hotkey configuration. In this case, macros can be started and stopped while the game is paused, and it is not necessary to hold the hotkeys while frame advancing.</p>
+<p>If the emulator supports <code>input.registerhotkey()</code>, the keys to start and stop macros are Lua hotkeys 1 and 2 rather than semicolon and quote. These keys can be bound in the emulator's hotkey configuration. In this case, macros can always be started and stopped while the game is paused.</p>
 
 <h3><a name="savestates" />Savestates</h3>
 <p>If the emulator supports <code>savestate.registersave()</code> and <code>savestate.registerload()</code>, the progress of any macros being played or recorded is saved alongside the savestate. Loading this savestate also restores the progress and the playing/recording status. If those functions are not supported, loading a savestate during a macro will cause a desync.</p>
@@ -185,11 +186,11 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>longwait</code></th>
 <td>Idle frames are collapsed into <code>Wn</code> phrases as a shorthand. This option specifies the minimum number of idle frames to trigger this. Set it to <code>0</code> to never use <code>Wn</code> phrases.</td></tr>
 <tr><th><code>longpress</code></th>
-<td>When an input is active for many consecutive frames, it is abbreviated as a <code>_k</code> at the beginning and a corresponding <code>^k</code> at the end instead of writing <code>k</code> every frame. This option specifies the minimum number of held frames to trigger this. Set it to <code>0</code> to never use <code>_k^k</code> phrases.</td></tr>
+<td>When an input is active for many consecutive frames, it is abbreviated as a <code>_k</code> at the beginning and a corresponding <code>^k</code> at the end instead of writing <code>k</code> every frame. This option specifies the minimum number of held frames to trigger this. Set it to <code>0</code> to never use <code>_k ^k</code> phrases.</td></tr>
 <tr><th><code>longline</code></th>
 <td>Each player's input can be broken up into multiple lines. This option specifies the minimum number of characters to trigger a linebreak. Set it to <code>0</code> to not break up lines.</td></tr>
 <tr><th><code>showfbainput</code></th>
-<td>If set to <code>true</code>, this option runs the <b>input display.lua</b> script that is included with FBA-rr. This script shows what inputs are being pressed by the players. It has no effect for other emulators, which have their own built-in display features.</td></tr>
+<td>If set to <code>true</code>, this option runs the included <b>input-display.lua</b> script with FBA-rr, which shows what inputs are being pressed by the players. It has no effect for other emulators, which have their own built-in display features.</td></tr>
 <tr><th><code>framemame</code></th>
 <td>Set to <code>true</code> only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as <code>false</code>.</td></tr>
 </table>
@@ -213,9 +214,9 @@ h6 { margin: 0 ; text-align: right ; }
 <tbody align="center">
 <tr><th>emulator</th><th>version tested</th><th><code>emu</code> alias</th><th>hotkey while<br />paused</th><th>lua+user<br />input</th><th>bulletproof<br />savestates</th><th>adapt to<br />ROMs</th></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td>0.0.4.01</td><td class="yes"><code>fba</code></td><td class="no">×</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td>0.0.4.01</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td>0.1.3</td><td class="yes"><code>pcsx</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td>0.1.3</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
 <tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td>11a</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 
@@ -223,7 +224,7 @@ h6 { margin: 0 ; text-align: right ; }
 
 <tr><td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td>v22 r203</td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td>2.1.3</td><td class="yes"><code>FCEU</code></td><td class="no">×</td><td class="yes">○</td><td class="no">○<a class="foot" href="#2">[2]</a></td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td>2.1.3</td><td class="yes"><code>FCEU</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">○<a class="foot" href="#2">[2]</a></td><td class="no">×</td></tr>
 
 <tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td>r128</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
 
@@ -242,9 +243,10 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>emu</code> alias</th>
 <td>MacroLua identifies the emulator and control scheme by the name of this table of functions.</td></tr>
 <tr><th>hotkey while paused</th>
-<td>If <code>input.registerhotkey()</code> is available, the user can start and stop recording during pause. The fallback is <code>input.get()</code>, which has the same function but cannot be done while paused.</td></tr>
+<td>If <code>input.registerhotkey()</code> is available, the user can start and stop recording during pause. The fallback is <code>input.get()</code>, which has the same function but cannot be done while paused.
+<br /><br />However, it's possible to use <code>input.get()</code> while paused in FBA, PCSX and FCEUX, due to a defect in the Lua implementation. In these cases the hotkeys will activate even if the emulator is not in focus.</td></tr>
 <tr><th>lua+user input</th>
-<td>The emulator may take input from both a Lua script and the user simultaneously if <code>joypad.set</code> allows it.</td></tr>
+<td>The emulator may take input from both a Lua script and the user simultaneously if <code>joypad.set()</code> allows it.</td></tr>
 <tr><th>bulletproof savestates</th>
 <td>The user may load savestates while playing or recording without losing progress if <code>savestate.registersave() and savestate.registerload()</code> are available.
 <br /><br />This feature has not been well tested.</td></tr>
@@ -253,6 +255,6 @@ h6 { margin: 0 ; text-align: right ; }
 <br /><br />Only Gens has <code>emu.registerstart()</code>, and no such name-returning function currently exists.</td></tr>
 </table>
 
-<h6>5/6/2010</h6>
+<h6>5/11/2010</h6>
 </body>
 </html>
