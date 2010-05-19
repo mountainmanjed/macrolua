@@ -99,7 +99,7 @@ cheat "background music"
 
 cheat "background music"
 0 "default"
-1 "mute", 1, 0xF020, 0x00, 1, 0xF021, 0x00
+1 "mute", 1, 0xF020, 0x00, 1, 0xF021, 0x00, 1, 0xF022, 0x00, 1, 0xF023, 0x00
 
 ////////////////////////////////////////////////////////////////////////////////
 // Works on the following CPS1 games:
