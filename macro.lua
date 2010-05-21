@@ -11,7 +11,7 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "1.03, 5/11/2010"
+local version = "1.05, 5/21/2010"
 print("MacroLua v"..version)
 dofile("macro-options.lua","r")
 dofile("macro-modules.lua","r")
@@ -27,7 +27,7 @@ local guiregisterhax = false --exploit that allows checking for hotkeys while pa
 if fba or FCEU or pcsx then guiregisterhax = true end
 
 if input.registerhotkey then
-	print("Press Lua hotkey 1 for playback and Lua hotkey 2 for recording.") print()
+	print("Press Lua hotkey 1 for playback, hotkey 2 for recording, or hotkey 3 to convert to one-line-per-frame format.") print()
 else
 	print("Press",playkey,"for playback and",recordkey,"for recording.") print()
 end
@@ -440,10 +440,12 @@ end
 
 local function playcontrol()
 	if not playing then
-		playing=true
 		parse(playbackfile)
-		print("Now playing",playbackfile,"("..macrosize,"frames)")
 		dostate(frame)
+		if not warning("Macro is zero frames long.",macrosize==0) then
+			print("Now playing",playbackfile,"("..macrosize,"frames)")
+			playing=true
+		end
 	else 
 		playing=false
 		inputstream=nil
@@ -463,9 +465,46 @@ local function reccontrol()
 	end
 end
 
+local function dumpinputstream()
+	if not playing then
+		parse(playbackfile)
+		if not warning("Macro is zero frames long.",macrosize==0) then
+			local dump=""
+			for p=1,nplayers do --header row
+				dump=dump.."|"
+				for _,v in ipairs(module) do
+					dump=dump..v[1]
+				end
+			end
+			dump=dump.."|\r\n"
+			for f=1,macrosize do --frame rows
+				for p=1,nplayers do
+					dump=dump.."|"
+					for _,v in ipairs(module) do
+						if inputstream[f] and inputstream[f][p] and string.find(inputstream[f][p],v[1]) then
+							dump=dump..v[1]
+						else
+							dump=dump.."."
+						end
+					end
+				end
+				dump=dump.."|\r\n"
+			end
+			local filename=string.gsub(playbackfile,"%....$","")
+			filename=filename.."-inputstream.txt"
+			local file=io.output(string.gsub(path,"\\","/")..filename)
+			file:write(dump) --Write to file.
+			file:close() --Close the file.
+			print("Converted",playbackfile,"to",filename.." ("..macrosize,"frames)") print()
+		end
+	end
+end
+
 emu.registerexit(function() --Attempt to save if the script exits while recording
 	if recording then recording=false finalize(recinputstream) end
 end)
+
+local oldplaykey, oldrecordkey, olddumpkey
 
 if input.registerhotkey then --use registerhotkey if available
 	input.registerhotkey(1,function()
@@ -474,6 +513,10 @@ if input.registerhotkey then --use registerhotkey if available
 
 	input.registerhotkey(2,function()
 		reccontrol()
+	end)
+
+	input.registerhotkey(3,function()
+		dumpinputstream()
 	end)
 elseif guiregisterhax then --otherwise try to exploit the constantly running gui.register
 	gui.register(function()
@@ -490,6 +533,12 @@ elseif guiregisterhax then --otherwise try to exploit the constantly running gui
 			reccontrol()
 		end
 		oldrecordkey=nowrecordkey
+
+		local nowdumpkey=input.get()[inputstreamkey]
+		if nowdumpkey and not olddumpkey then
+			dumpinputstream()
+		end
+		olddumpkey=nowdumpkey
 	end)
 end
 
@@ -509,6 +558,12 @@ emu.registerbefore(function()
 			reccontrol()
 		end
 		oldrecordkey=nowrecordkey
+
+		local nowdumpkey=input.get()[dumpkey]
+		if nowdumpkey and not olddumpkey then
+			dumpinputstream()
+		end
+		olddumpkey=nowdumpkey
 	end
 
 	if playing then

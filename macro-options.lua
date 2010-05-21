@@ -17,8 +17,11 @@ playkey = "semicolon"
 -- press to start and stop recording a macro
 recordkey = "quote"
 
+-- press to convert the playback file to one-line-per-frame format
+inputstreamkey = "numpad-"
+
 -- pause after a macro completes
-pauseafterplay = true
+pauseafterplay = false
 
 -- minimum wait frames to be collapsed into Ws when recording
 longwait = 4
