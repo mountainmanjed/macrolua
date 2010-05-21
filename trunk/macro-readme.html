@@ -177,9 +177,12 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>path</code></th>
 <td>This is the path where the script file is found and where recordings will be placed. The path may be either relative to <b>macro.lua</b> or absolute. Use either double forward slashes (<code>.\\path\\</code>) or single backslashes (<code>./path/</code>).</td></tr>
 <tr><th><code>playkey</code></th>
-<td>Press this key to start playing the specified script or to cancel an already playing script.</td></tr>
+<td>Press to start playing the specified script or to cancel an already playing script.</td></tr>
 <tr><th><code>recordkey</code></th>
-<td>Press this key to start recording input to a new script and to finish a recording in progress.</td></tr>
+<td>Press to start recording input to a new script and to finish a recording in progress.</td></tr>
+<tr><th><code>inputstreamkey</code></th>
+<td>Press to convert the playback file to the expanded one-line-per-frame format. The result will be saved as a text file.
+<br />This feature can help in analyzing scripts. MacroLua cannot currently parse files in this format.</td></tr>
 <tr><th><code>pauseafterplay</code></th>
 <td>Set to <code>true</code> to pause after a script finishes playing or <code>false</code> to not pause.</td></tr>
 <tr><td colspan="2" align="center">After recording player input, the results are written to file. The following three options affect the style of the output:</td></tr>
@@ -255,6 +258,6 @@ h6 { margin: 0 ; text-align: right ; }
 <br /><br />Only Gens has <code>emu.registerstart()</code>, and no such name-returning function currently exists.</td></tr>
 </table>
 
-<h6>5/11/2010</h6>
+<h6>5/21/2010</h6>
 </body>
 </html>
