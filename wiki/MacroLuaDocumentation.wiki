@@ -112,8 +112,9 @@ The _macro-options.lua_ file contains the user's settings. This file can be edit
 ||||The first four options must be enclosed in quotes.||
 ||`playbackfile`||This is the filename of the script to be played.||
 ||`path`||This is the path where the script file is found and where recordings will be placed. The path may be either relative to macro.lua or absolute. Use either double forward slashes (`.\\path\\`) or single backslashes (`./path/`).||
-||`playkey`||Press this key to start playing the specified script or to cancel an already playing script.||
-||`recordkey`||Press this key to start recording input to a new script and to finish a recording in progress.||
+||`playkey`||Press to start playing the specified script or to cancel an already playing script.||
+||`recordkey`||Press to start recording input to a new script and to finish a recording in progress.||
+||`inputstreamkey`||Press to convert the playback file to the expanded one-line-per-frame format. The result will be saved as a text file.<br>This feature can help in analyzing scripts. !MacroLua cannot currently parse files in this format.||
 ||`pauseafterplay`||Set to `true` to pause after a script finishes playing or `false` to not pause.||
 ||||After recording player input, the results are written to file. The following three options affect the style of the output:||
 ||`longwait`||Idle frames are collapsed into `Wn` phrases as a shorthand. This option specifies the minimum number of idle frames to trigger this. Set it to 0 to never use `Wn` phrases.||
