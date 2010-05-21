@@ -6,6 +6,11 @@
 ----
 = !MacroLua =
 
+== v1.05, 5/21/2010 ==
+
+=== New feature: ===
+ * You can convert the playback file to one-line-per-frame format, like FM2 format and the "input stream" readout in !AutoMacro.<br>This is activated by hotkey `numpad-` by default.
+
 == v1.04, 5/11/2010 ==
 
 === Problems fixed: ===
