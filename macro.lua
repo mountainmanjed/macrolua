@@ -11,7 +11,7 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "1.05, 5/21/2010"
+local version = "1.06, 5/29/2010"
 print("MacroLua v"..version)
 dofile("macro-options.lua","r")
 dofile("macro-modules.lua","r")
@@ -93,6 +93,11 @@ elseif not emu.registerstart then --registerstart is wanted in FBA
 else
 	emu.registerstart(function() findFBAmodule() end)
 end
+
+--determine if it's OK to convert F/B to L/R
+local using = {}
+for _,v in ipairs(module) do using[string.upper(v[1])] = true end
+local useF_B = using.L and using.R and not (using.F or using.B)
 
 local hold,press={},{}
 for p=1,nplayers do hold[p],press[p]={},{} end
@@ -199,6 +204,15 @@ local function processframe(command)
 			if c==k then
 				funckeys[k]()
 				return ""
+			end
+		end
+		if useF_B and c=="F" then --Convert F/B to L/R depending on player.
+			if player%2==0 then c="L"
+			else c="R"
+			end
+		elseif useF_B and c=="B" then
+			if player%2==0 then c="R"
+			else c="L"
 			end
 		end
 		for _,v in ipairs(module) do --game keys

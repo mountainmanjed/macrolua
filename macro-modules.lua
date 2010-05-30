@@ -72,7 +72,7 @@ single={ --for emulators with a single control scheme
 		{"S","Run"},
 		{"@","Select"},
 	}},
-	{pcsx,2,{ --PCSX has broken register functions and no output console.
+	{pcsx,2,{
 		{"U","up"},
 		{"D","down"},
 		{"L","left"},
