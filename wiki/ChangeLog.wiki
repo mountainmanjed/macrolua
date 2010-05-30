@@ -48,6 +48,11 @@
 ----
 = !AutoMacro =
 
+== v1.04, 5/29/2010 ==
+
+=== New feature: ===
+ * You may write `F` (forward) or `B` (back) in scripts and these are equivalent to `L` or `R` depending on the active player.
+
 == v1.03, 5/7/2010 ==
 
 === Problems fixed: ===
