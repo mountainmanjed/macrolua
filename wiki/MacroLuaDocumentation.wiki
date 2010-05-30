@@ -54,6 +54,8 @@ In the following commands, `n` represents a number and `k` represents a key (dir
 ||*`_k`*||Hold the gamekey k. The key is pressed for the current frame and any subsequent frames until released.||
 ||*`^k`*||Release the gamekey k, if held.||
 ||*`*`*||Release all held keys.||
+||*`F`*||Input `R` for player 1 or odd numbered players, or `L` for player 2 or even numbered players.||
+||*`B`*||Input `L` for player 1 or odd numbered players, or `R` for player 2 or even numbered players.||
 ||*`.`*||Advance one frame.||
 ||*`Wn`*||Advance (wait) n frames.||
 ||*`+`*||Select player 1.||
@@ -70,6 +72,8 @@ In the following commands, `n` represents a number and `k` represents a key (dir
 Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a `W`) and numerical key presses.
 
 Analog inputs are not (yet) supported.
+
+    * `F` and `B` only get substituted if the module is using `L` and `R` and not already using `F` or `B`.
 
 === Synchronous multi-player control with + - ===
 
