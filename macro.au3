@@ -1,6 +1,6 @@
 local $appname = "AutoMacro"
-local $version = "1.03"
-local $verdate = "5/7/2010"
+local $version = "1.04"
+local $verdate = "5/29/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
 
@@ -73,7 +73,7 @@ local $settings[11][2] = [ _
 	
 ; These values will be used in case of invalid ini values
 local $macrofile = "sample.mis", $targetwindow = "", $startkey = "Ctrl+P", $stopkey = "Ctrl+S"
-local $framelength = 1000/60, $nplayers = 2, $nkeys = 10
+local $framelength = 1000/60, $nplayers = 2, $nkeys = 10, $useF_B = true
 local $gamekeys[$nkeys][$nplayers+2] = [ _
 	[     "right", "R", "right", "numpad6"], _
 	[      "left", "L",  "left", "numpad4"], _
@@ -553,12 +553,28 @@ func loadsettings()
 		next
 	next
 
+	$useF_B = false
+	local $usingF = false, $usingB = false, $usingL = false, $usingR = false
 ; Case desensitize the gamekey symbols
 	for $k = 0 to $nkeys-1
 		for $p = 1 to $nplayers+1
 			$gamekeys[$k][$p] = stringupper($gamekeys[$k][$p])
 		next
+		switch $gamekeys[$k][1]
+		case "F"
+			$usingF = true
+		case "B"
+			$usingB = true
+		case "L"
+			$usingL = true
+		case "R"
+			$usingR = true
+		endswitch
 	next
+; Check if it's OK to substitute F/B for L/R
+	if not $usingF and not $usingB and $usingL and $usingR then
+		$useF_B = true
+	endif
 
 	guictrlsetdata($filebar, $macrofile)
 	applyhotkey($startkey, "playback", $startitem, "Start sending", 0)
@@ -677,6 +693,8 @@ func loadscript($file)
 ; Remove the last element (always empty) from $inputstream
 	redim $inputstream[$frame][$nplayers][$nkeys]
 
+	setstatus(3)
+
 	if $inbrackets then
 		warning("Brackets were left open.")
 		closebrackets()
@@ -694,8 +712,6 @@ func loadscript($file)
 
 ; ------------------------------------------------------------------------------
 ; Produce the string dumps and the command queue from the input stream array
-	setstatus(3)
-	
 	local $ndigits = digits($macrosize), $lastframe[$nplayers][$nkeys], $idle = 0, $activity = false, _
 		$inputdump = "", $deltadump = "", $comdump = ""
 
@@ -954,6 +970,19 @@ func char(byref $key)
 			return
 		endif
 	next
+	if $key == "F" and $useF_B then
+		if mod($player, 2) == 0 then
+			$key = "L"
+		else
+			$key = "R"
+		endif
+	elseif $key == "B" and $useF_B then
+		if mod($player, 2) == 0 then
+			$key = "R"
+		else
+			$key = "L"
+		endif
+	endif
 	for $k = 0 to $nkeys-1
 		if $key == $gamekeys[$k][1] then
 			switch $nextkey
