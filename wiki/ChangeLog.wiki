@@ -6,6 +6,19 @@
 ----
 = !MacroLua =
 
+== v1.07, 6/13/2010 ==
+
+=== Problems fixed: ===
+ * Savestates seem to work fine in the new FCEUX 2.1.4a.
+ * Frame-by-frame output no longer has doubled linebreaks.
+ * Both `CRLF` and `CR` linebreaks are correctly parsed now.
+ * It no longer causes problems to put a numerical key press directly after a state operation.
+
+=== Enhancements: ===
+ * Parsing warnings are now reported by line number in addition to frame number.
+ * There's a warning if a valid key is pressed without a frame advance at the end of a script.
+ * Key release commands at the end of a script are processed normally without a frame advance.
+
 == v1.06, 5/29/2010 ==
 
 === New feature: ===
