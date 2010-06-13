@@ -1,6 +1,6 @@
 local $appname = "AutoMacro"
-local $version = "1.04"
-local $verdate = "5/29/2010"
+local $version = "1.05"
+local $verdate = "6/13/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
 
@@ -107,7 +107,7 @@ local $funckeys[9][2] = [ _
 ["+",        "pfirst()"], _
 ["-",         "pnext()"]]
 
-local $macrosize, $warningcount, $player, $nextkey, $unused, $frame, $bracket[$nplayers+1], $inbrackets, _
+local $macrosize, $warningcount, $player, $nextkey, $unused, $frame, $line, $bracket[$nplayers+1], $inbrackets, _
 	$press[$nplayers][$nkeys], $hold[$nplayers][$nkeys], $inputstream[1][$nplayers][$nkeys], $comqueue[1]
 local $loadedfile, $scripttimestamp, $configtimestamp
 
@@ -607,6 +607,7 @@ func loadscript($file)
 ; ------------------------------------------------------------------------------
 ; Initialize parameters
 	$frame = 0
+	$line = 1
 	$macrosize = 0
 	$warningcount = 0
 	$nextkey = 0
@@ -639,32 +640,29 @@ func loadscript($file)
 ; Remove lines commented with "#"
 	$macro = stringregexpreplace($macro, "#.*","")
 
-; Case desensitize
-	$macro = stringupper($macro)
-
 ; Remove frameMAME audio commands
-	if $framemame then $macro = stringregexpreplace($macro, "A[M!]|A[CS]\s?\d+|AR\s?\d+\s\d+", "")
+	if $framemame then $macro = stringregexpreplace($macro, "[aA][mM!]|[aA][cCsS]\s?\d+|[aA][rR]\s?\d+\s\d+", "")
 
-; Replace line breaks with commas
-	$macro = stringregexpreplace($macro, "[\r\n]", ",")
+; Standardize line breaks
+	$macro = stringregexpreplace($macro, "\r\n|\n", @cr)
 
 ; Remove the first "!" and everything after, and savestate ops
 	$macro = stringregexpreplace($macro, "!.*|[$&]\s?\d+", "")
 
 ; Expand waits into dots
-	while stringregexp($macro,"W\s?\d+")
-		local $execstring = stringregexpreplace($macro, "(.*?)(W\s?(\d+))(.*)", 'dots("\1","\2","\3","\4")')
+	while stringregexp($macro, "[wW]\s?\d+")
+		local $execstring = stringregexpreplace($macro, "(.*?)([wW]\s?(\d+))(.*)", 'dots("\1","\2","\3","\4")')
 		$macro = execute($execstring)
 	wend
 
 ; Expand ()n loops
-	while stringregexp($macro,"\(.*\)\s?\d+")
+	while stringregexp($macro, "\(.*\)\s?\d+")
 		local $execstring = stringregexpreplace($macro, "(.*)(\(.*?\))\s?(\d+)(.*)", 'loop("\1","\2","\3","\4")')
 		$macro = execute($execstring)
 	wend
 
-; Remove commas and spaces
-	$macro = stringregexpreplace($macro,"[,\s]", "")
+; Remove commas, spaces and tabs
+	$macro = stringregexpreplace($macro, "[, \t]", "")
 
 ; Final string dump
 	$viewarray[1][1] = $macro 
@@ -701,14 +699,16 @@ func loadscript($file)
 	endif
 
 	for $p = 0 to $nplayers-1
-		local $stillheld = ""
+		local $stillpressed = "", $stillheld = ""
 		for $k = 0 to $nkeys-1
+			if $press[$p][$k] = true then $stillpressed &= $gamekeys[$k][0] & " "
 			if $hold[$p][$k] = true then $stillheld &= $gamekeys[$k][0] & " "
 		next
+		if $stillpressed then warning('Player ' & $p+1 & ' was left pressing without frame advance: ' & $stillpressed)
 		if $stillheld then warning('Player ' & $p+1 & ' was left holding: ' & $stillheld)
 	next
 
-	if $unused then warning('Unprocessed input: ' & $unused)
+	if $unused then warning('Input left unprocessed: ' & $unused)
 
 ; ------------------------------------------------------------------------------
 ; Produce the string dumps and the command queue from the input stream array
@@ -970,13 +970,13 @@ func char(byref $key)
 			return
 		endif
 	next
-	if $key == "F" and $useF_B then
+	if stringupper($key) == "F" and $useF_B then
 		if mod($player, 2) == 0 then
 			$key = "L"
 		else
 			$key = "R"
 		endif
-	elseif $key == "B" and $useF_B then
+	elseif stringupper($key) == "B" and $useF_B then
 		if mod($player, 2) == 0 then
 			$key = "R"
 		else
@@ -984,7 +984,7 @@ func char(byref $key)
 		endif
 	endif
 	for $k = 0 to $nkeys-1
-		if $key == $gamekeys[$k][1] then
+		if stringupper($key) == $gamekeys[$k][1] then
 			switch $nextkey
 			case 0 ; press
 				if $press[$player-1][$k] or $hold[$player-1][$k] then warning("" & $key & " is already down for player " & $player)
@@ -1000,13 +1000,17 @@ func char(byref $key)
 			return
 		endif
 	next
+	if $key == @cr then
+		$line+=1
+		return
+	endif
 	warning('Unrecognized symbol "' & $key & '"')
 	$unused &= $key
 endfunc
 
 func warning(byref $msg)
 	if $status = 2 then ; parsing still in progress
-		message("Warning on frame " & $frame & ": " & $msg)
+		message("Warning on line " & $line & ", frame " & $frame & ": " & $msg)
 	else
 		message("Warning: " & $msg)
 	endif
