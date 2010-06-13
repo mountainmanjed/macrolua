@@ -149,7 +149,7 @@ Not all games have known mute codes. You can request more at [http://cheat.retro
 ||[http://code.google.com/p/gens-rerecording/downloads/list Gens-rr]||`11a`||`gens`||○||○||○||×||
 ||[http://code.google.com/p/snes9x-rr/downloads/list snes9x-rr]||`1.43 v17 r123`<br>`1.51 v6 r113`^1^||`snes9x`||×||○||○||×||
 ||[http://code.google.com/p/vba-rerecording/downloads/list VBA-rr]||`v22 r203`||`vba`||×||○||×||×||
-||[http://www.fceux.com/web/download.html FCEUX]||`2.1.3`||`FCEU`||○||○||○^2^||×||
+||[http://www.fceux.com/web/download.html FCEUX]||`2.1.3`||`FCEU`||○||○||○||×||
 ||[http://code.google.com/p/pcejin/downloads/list PCEjin]||`r128`||×||○||×||○||×||
 ||[http://desmume.org/ DeSmuMe]||||||||||||not yet tested||
 ||[http://code.google.com/p/mupen64-rr/ mupen64-rr]||||||||||||does not support Lua||
@@ -157,7 +157,6 @@ Not all games have known mute codes. You can request more at [http://cheat.retro
 ||[http://code.google.com/p/mednafen-rr/ mednafen-rr]||||||||||||does not support Lua||
 
    * `[1]` snes9x 1.51 only accepts Lua input from within a `while true do` loop, so playback won't work.
-   * `[2]` Loading savestates via Lua crashes FCEUX.
 
 ||`emu` alias||!MacroLua identifies the emulator and control scheme by the name of this table of functions.||
 ||hotkey while paused||If `input.registerhotkey()` is available, the user can start and stop recording during pause. The fallback is `input.get()`, which has the same function but cannot be done while paused.<br><br>However, it's possible to use `input.get()` while paused in FBA, PCSX and FCEUX, due to a defect in the Lua implementation. In these cases the hotkeys will activate even if the emulator is not in focus.||
