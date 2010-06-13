@@ -11,7 +11,7 @@
 === Problems fixed: ===
  * Savestates seem to work fine in the new FCEUX 2.1.4a.
  * Frame-by-frame output no longer has doubled linebreaks.
- * Both `CRLF` and `CR` linebreaks are correctly parsed now.
+ * Both `CRLF` and `LF` linebreaks are correctly parsed now.
  * It no longer causes problems to put a numerical key press directly after a state operation.
 
 === Enhancements: ===
@@ -60,6 +60,12 @@
 
 ----
 = !AutoMacro =
+
+== v1.05, 6/13/2010 ==
+
+=== Enhancements: ===
+ * Parsing warnings are now reported by line number in addition to frame number.
+ * There's a warning if a valid key is pressed without a frame advance at the end of a script.
 
 == v1.04, 5/29/2010 ==
 
