@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://www.w3.org/2005/10/profile">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
+<style type="text/css">
+body { color: #000000 ; background-color: #FFFFFF ; font-family: sans-serif ; text-align: justify ; margin-right: 20px ; margin-left: 20px ; }
+h1, h2, h3, h4, h6 { font-weight: normal ; font-style: italic ; }
+a:link { color: #000080 ; text-decoration: none ; }
+a:visited { text-decoration: none ; }
+a:link:hover, a:visited:hover { color: #000080 ; background-color: #E0E0FF ; }
+a:link:active, a:visited:active { color: #FF0000 ; }
+hr { border: 0 ; height: 1px ; color: #a0a0a0 ; background-color: #a0a0a0 ; }
+ul { list-style-position: outside ; }
+table, td, th { border: 1px solid black ; }
+td, th { padding: 4px ; }
+th { text-align: center ; font-family: courier ; }
+h6 { margin: 0 ; text-align: right ; }
+.cmdline { background-color: black ; color: yellow ; font-family: lucida console ; font-size: 80% ; padding: 12px ; margin-left: 16px ; margin-right: 16px ; }
+.keymap { border: 0 ; width: 15% ; }
+</style>
+<title>TranScripter Documentation</title>
+</head>
+
+<body>
+<h1>TranScripter Documentation</h1>
+
+<h2><a name="TOC"/>Contents</h2><ul>
+<li><a href="#intro">Introduction</a></li>
+<li><a href="#mednafen">Getting started with mednafen-rr</a></li>
+<li><a href="#usage">How to use TranScripter</a></li>
+<li><a href="#format">Writing scripts</a></li>
+</ul>
+
+<hr />
+
+<h2><a name="intro" />Introduction</h2>
+<p>TranScripter is a program to script precise sequences of commands in emulators that have input recording functionality but lack Lua support. It works by writing the scripted inputs directly into the input recording file. Currently it works with <a href="http://code.google.com/p/mednafen-rr/">mednafen-rr 1.1</a>.</p>
+
+<p>For emulators with Lua, use <a href="http://code.google.com/p/macrolua/wiki/MacroLuaDocumentation">MacroLua</a> instead.</p>
+
+<p>TranScripter was created with <a href="http://www.autoitscript.com/autoit3/index.shtml">AutoIt3.</a></p>
+
+<hr />
+
+<h2><a name="mednafen" />Getting started with mednafen-rr</h2>
+
+<p>Mednafen can be hard to use.</p>
+
+<ul>
+<li><a href="http://code.google.com/p/mednafen-rr/wiki/Commandline">Command line help</a></li>
+<li><a href="http://code.google.com/p/mednafen-rr/wiki/ConfigControllerHotkeys">Hotkey help</a></li>
+<li><a href="http://code.google.com/p/mednafen-rr/wiki/MakingAVideo">How to make an AVI</a></li>
+</ul>
+
+<p>Hotkeys referenced below are the defaults and can be changed.</p>
+
+<ul>
+<li>To configure controls all at once press <b>alt+shift+1</b> in game.</li>
+<li>To remap a hotkey press <b>alt+shift+h</b> in game, then press the key to be changed.</li>
+<li>Any setting can be changed by editing <i>mednafen.cfg</i>.</li>
+<li>Refer to <a href="http://www.koders.com/c/fid28C7AB7F38EF27D073CC5B3018444498374E3E1F.aspx">this key map</a> if manually editing keys in <i>mednafen.cfg</i>.</li>
+<li>If the keyboard becomes unresponsive in game try pressing <b>alt</b>.</li>
+<li>Savestates saved during a movie cannot be loaded out of the movie and vice versa. Attempting this sometimes causes crash.</li>
+</ul>
+
+<p>For launching the program, it's recommended to start out with the frontend, Mednafen-Front. If using the command line, you can copy valid commands from the CommandLine bar in Mednafen-Front. The <code>-loadstate</code>, <code>-mov</code>, and other options must come before the ROM name. The ROM must always be last.</p>
+
+<h3>Example launch commands</h3>
+<p>Just load a ROM:</p>
+<p class="cmdline">mednafen ROMs\myrom.zip</p>
+<p>Double the screen size for NeoGeo Pocket:</p>
+<p class="cmdline">mednafen -ngp.xscale 2 -ngp.yscale 2 ROMs\myrom.zip</p>
+<p>Load a ROM and a savestate:</p>
+<p class="cmdline">mednafen -loadstate mcs\myrom.nc0 ROMs\myrom.zip</p>
+<p>Record a movie:</p>
+<p class="cmdline">mednafen -mov mcm\mymovie.mcm -record 1 ROMs\myrom.zip</p>
+<p>Play a movie and fast-forward with a savestate:</p>
+<p class="cmdline">mednafen -mov mcm\mymovie.mcm -play 1 -loadstate mcs\myrom.nc0 ROMs\myrom.zip</p>
+<p>Play a movie and record 2000 frames to an mmm file:</p>
+<p class="cmdline">mednafen -mov mcm\mymovie.mcm -play 1 -mmm 1 -mmmfile mcm\dump.mmm -mmmframes 2000 ROMs\myrom.zip</p>
+
+<hr />
+
+<h2><a name="usage" />How to use TranScripter</h2>
+<ol>
+<li>Launch your game, deactivate read-only mode (<b>shift+t</b>) and start recording a movie (<b>ctrl+shift+r</b>) up to the point where you want the script to start. Save a state (<b>shift+F1</b>).</li>
+<li>Stop recording (<b>ctrl+shift+r</b>) so that the mcm will be properly formatted.</li>
+<li>Compose the <i>.mis</i> script file. See below for the format.</li>
+<li>Edit <i>TranScripter.ini</i> and designate the movie file and script file, and specify the movie frame that the script should start at. This start frame must be less than the frame length of the movie file, and must come before the savestate that will be used to fast-forward to the action.</li>
+<li>Run TranScripter. If there are no errors or warnings, there will be no feedback and the process was successful. Otherwise a box will pop up with any errors or warnings.</li>
+<li>Restart movie playback (<b>shift+p</b>), load the state (<b>F1</b>), and observe the result.</li>
+<li>Edit the <i>.mis</i> file with any changes and repeat the last two steps until the desired results are achieved.</li>
+</ol>
+
+<hr />
+
+<h2><a name="format" />Writing scripts</h2>
+<p>The basic format is the same as <a href="http://code.google.com/p/macrolua/wiki/AutoMacroDocumentation">AutoMacro</a>. There's no Lua, so savestate operations cannot be scripted.</p>
+<p>The symbols for each system's keys are shown below:</p>
+
+<table style="border: 0 ; ">
+<tr style="vertical-align: text-top ; "><td class="keymap">
+
+<h3>NeoGeo Pocket</h3>
+<table>
+<tr><th>U</th><td>up</td></tr>
+<tr><th>D</th><td>down</td></tr>
+<tr><th>L</th><td>left</td></tr>
+<tr><th>R</th><td>right</td></tr>
+<tr><th>1</th><td>A</td></tr>
+<tr><th>2</th><td>B</td></tr>
+<tr><th>O</th><td>option</td></tr>
+</table>
+
+</td><td class="keymap">
+
+<h3>Wonderswan</h3>
+<table>
+<tr><th>U</th><td>X up</td></tr>
+<tr><th>D</th><td>X down</td></tr>
+<tr><th>L</th><td>X left</td></tr>
+<tr><th>R</th><td>X right</td></tr>
+<tr><th>8</th><td>Y up</td></tr>
+<tr><th>2</th><td>Y down</td></tr>
+<tr><th>4</th><td>Y left</td></tr>
+<tr><th>6</th><td>Y right</td></tr>
+<tr><th>Y</th><td>A</td></tr>
+<tr><th>Z</th><td>B</td></tr>
+<tr><th>S</th><td>start</td></tr>
+</table>
+
+</td><td class="keymap">
+
+<h3>PC Engine</h3>
+<table>
+<tr><th>U</th><td>up</td></tr>
+<tr><th>D</th><td>down</td></tr>
+<tr><th>L</th><td>left</td></tr>
+<tr><th>R</th><td>right</td></tr>
+<tr><th>1</th><td>I</td></tr>
+<tr><th>2</th><td>II</td></tr>
+<tr><th>3</th><td>III</td></tr>
+<tr><th>4</th><td>IV</td></tr>
+<tr><th>5</th><td>V</td></tr>
+<tr><th>6</th><td>VI</td></tr>
+<tr><th>R</th><td>run</td></tr>
+<tr><th>S</th><td>select</td></tr>
+<tr><th>M</th><td>mode</td></tr>
+</table>
+
+</td><td class="keymap">
+
+<h3>Lynx</h3>
+<table>
+<tr><th>U</th><td>up</td></tr>
+<tr><th>D</th><td>down</td></tr>
+<tr><th>L</th><td>left</td></tr>
+<tr><th>R</th><td>right</td></tr>
+<tr><th>1</th><td>A</td></tr>
+<tr><th>2</th><td>B</td></tr>
+<tr><th>3</th><td>option 1</td></tr>
+<tr><th>4</th><td>option 2</td></tr>
+<tr><th>S</th><td>start</td></tr>
+</table>
+
+</td><td class="keymap">
+
+<h3>NES</h3>
+<table>
+<tr><th>U</th><td>up</td></tr>
+<tr><th>D</th><td>down</td></tr>
+<tr><th>L</th><td>left</td></tr>
+<tr><th>R</th><td>right</td></tr>
+<tr><th>1</th><td>A</td></tr>
+<tr><th>2</th><td>B</td></tr>
+<tr><th>@</th><td>select</td></tr>
+<tr><th>S</th><td>start</td></tr>
+</table>
+
+</td></tr>
+</table>
+
+<h6>7/17/2010</h6>
+</body>
+</html>
