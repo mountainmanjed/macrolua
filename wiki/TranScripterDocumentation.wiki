@@ -5,11 +5,16 @@
 ----
 = Introduction =
 
-!TranScripter is a program to script precise sequences of commands in emulators that have input recording functionality but lack Lua support. It works by writing the scripted inputs directly into the input recording file. Currently it works with [http://code.google.com/p/mednafen-rr/ mednafen-rr 1.1].
+!TranScripter is a program to script precise sequences of commands in emulators that have input recording functionality but lack Lua support. It works by writing the scripted inputs directly into the input recording file.
+
+Currently it works with:
+||emulator||version||movie format||
+||[http://code.google.com/p/yabause-rr/ yabause-rr]||2541||ymv||
+||[http://code.google.com/p/mednafen-rr/ mednafen-rr]||1.1||mcm||
 
 For emulators with Lua, use [MacroLuaDocumentation MacroLua] instead.
 
-TranScripter was created with [http://www.autoitscript.com/autoit3/index.shtml AutoIt3].
+!TranScripter was created with [http://www.autoitscript.com/autoit3/index.shtml AutoIt3].
 
 ----
 = Getting started with mednafen-rr =
@@ -73,6 +78,24 @@ The basic format is the same as [AutoMacroDocumentation AutoMacro]. There's no L
 
 The symbols for each system's keys are shown below:
 
+== yabause-rr: ==
+=== Saturn ===
+||U||up||
+||D||down||
+||L||left||
+||R||right||
+||1||X||
+||2||Y||
+||3||Z||
+||4||A||
+||5||B||
+||6||C||
+||7||L||
+||8||R||
+||S||start||
+
+
+== mednafen-rr: ==
 === !NeoGeo Pocket ===
 ||`U`||up||
 ||`D`||down||
@@ -89,11 +112,11 @@ The symbols for each system's keys are shown below:
 ||`L`||X left||
 ||`R`||X right||
 ||`8`||Y up||
-||`2`||Y down||
+||`5`||Y down||
 ||`4`||Y left||
 ||`6`||Y right||
-||`Y`||A||
-||`Z`||B||
+||`1`||A||
+||`2`||B||
 ||`S`||start||
 
 
@@ -102,13 +125,13 @@ The symbols for each system's keys are shown below:
 ||`D`||down||
 ||`L`||left||
 ||`R`||right||
-||`1`||I||
-||`2`||II||
-||`3`||III||
-||`4`||IV||
-||`5`||V||
-||`6`||VI||
-||`R`||run||
+||`1`||IV||
+||`2`||V||
+||`3`||VI||
+||`4`||III||
+||`5`||II||
+||`6`||I||
+||`@`||run||
 ||`S`||select||
 ||`M`||mode||
 
@@ -134,3 +157,7 @@ The symbols for each system's keys are shown below:
 ||`2`||B||
 ||`@`||select||
 ||`S`||start||
+
+The Windows version of mednafen-rr won't run games for:
+
+ * Game Boy, Game Boy Advance, Sega Master System, Game Gear, PC-FX.
