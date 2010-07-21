@@ -11,11 +11,12 @@ a:link:hover, a:visited:hover { color: #000080 ; background-color: #E0E0FF ; }
 a:link:active, a:visited:active { color: #FF0000 ; }
 hr { border: 0 ; height: 1px ; color: #a0a0a0 ; background-color: #a0a0a0 ; }
 ul { list-style-position: outside ; }
-table, td, th { border: 1px solid black ; }
-td, th { padding: 4px ; }
-th { text-align: center ; font-family: courier ; }
+tr { vertical-align: top ; }
+td, th { border: 1px solid black ; padding: 4px ; }
+th { text-align: center ; }
 h6 { margin: 0 ; text-align: right ; }
 .cmdline { background-color: black ; color: yellow ; font-family: lucida console ; font-size: 80% ; padding: 12px ; margin-left: 16px ; margin-right: 16px ; }
+.center { margin-left: auto ; margin-right: auto ; margin-bottom: 10px ; border: 1px solid black ; }
 .keymap { border: 0 ; width: 15% ; }
 </style>
 <title>TranScripter Documentation</title>
@@ -34,7 +35,13 @@ h6 { margin: 0 ; text-align: right ; }
 <hr />
 
 <h2><a name="intro" />Introduction</h2>
-<p>TranScripter is a program to script precise sequences of commands in emulators that have input recording functionality but lack Lua support. It works by writing the scripted inputs directly into the input recording file. Currently it works with <a href="http://code.google.com/p/mednafen-rr/">mednafen-rr 1.1</a>.</p>
+<p>TranScripter is a program to script precise sequences of commands in emulators that have input recording functionality but lack Lua support. It works by writing the scripted inputs directly into the input recording file.</p>
+<p>Currently it works with:</p>
+<table>
+<tr><th>emulator</th><th>version</th><th>movie format</th></tr>
+<tr><td><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></td><td>2541</td><td>ymv</td></tr>
+<tr><td><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></td><td>1.1</td><td>mcm</td></tr>
+</table>
 
 <p>For emulators with Lua, use <a href="http://code.google.com/p/macrolua/wiki/MacroLuaDocumentation">MacroLua</a> instead.</p>
 
@@ -98,11 +105,42 @@ h6 { margin: 0 ; text-align: right ; }
 <p>The basic format is the same as <a href="http://code.google.com/p/macrolua/wiki/AutoMacroDocumentation">AutoMacro</a>. There's no Lua, so savestate operations cannot be scripted.</p>
 <p>The symbols for each system's keys are shown below:</p>
 
-<table style="border: 0 ; ">
-<tr style="vertical-align: text-top ; "><td class="keymap">
+<table style="width: 100% ; "><tr>
+<td style="border: 0 ; text-align: center ; "><h3>yabause-rr</h3></td>
+<td colspan="5" style="border: 0 ; text-align: center ; "><h3>mednafen-rr</h3></td>
+
+</tr><tr><td>
+
+<table style="margin: 10px ; ">
+<tr><td class="keymap">
+
+<h3>Saturn</h3>
+<table class="center">
+<tr><th>U</th><td>up</td></tr>
+<tr><th>D</th><td>down</td></tr>
+<tr><th>L</th><td>left</td></tr>
+<tr><th>R</th><td>right</td></tr>
+<tr><th>1</th><td>X</td></tr>
+<tr><th>2</th><td>Y</td></tr>
+<tr><th>3</th><td>Z</td></tr>
+<tr><th>4</th><td>A</td></tr>
+<tr><th>5</th><td>B</td></tr>
+<tr><th>6</th><td>C</td></tr>
+<tr><th>7</th><td>L</td></tr>
+<tr><th>8</th><td>R</td></tr>
+<tr><th>S</th><td>start</td></tr>
+</table>
+
+</td></tr>
+</table>
+
+</td><td>
+
+<table style="margin: 10px ; ">
+<tr><td class="keymap">
 
 <h3>NeoGeo Pocket</h3>
-<table>
+<table class="center">
 <tr><th>U</th><td>up</td></tr>
 <tr><th>D</th><td>down</td></tr>
 <tr><th>L</th><td>left</td></tr>
@@ -115,35 +153,35 @@ h6 { margin: 0 ; text-align: right ; }
 </td><td class="keymap">
 
 <h3>Wonderswan</h3>
-<table>
+<table class="center">
 <tr><th>U</th><td>X up</td></tr>
 <tr><th>D</th><td>X down</td></tr>
 <tr><th>L</th><td>X left</td></tr>
 <tr><th>R</th><td>X right</td></tr>
 <tr><th>8</th><td>Y up</td></tr>
-<tr><th>2</th><td>Y down</td></tr>
+<tr><th>5</th><td>Y down</td></tr>
 <tr><th>4</th><td>Y left</td></tr>
 <tr><th>6</th><td>Y right</td></tr>
-<tr><th>Y</th><td>A</td></tr>
-<tr><th>Z</th><td>B</td></tr>
+<tr><th>1</th><td>A</td></tr>
+<tr><th>2</th><td>B</td></tr>
 <tr><th>S</th><td>start</td></tr>
 </table>
 
 </td><td class="keymap">
 
 <h3>PC Engine</h3>
-<table>
+<table class="center">
 <tr><th>U</th><td>up</td></tr>
 <tr><th>D</th><td>down</td></tr>
 <tr><th>L</th><td>left</td></tr>
 <tr><th>R</th><td>right</td></tr>
-<tr><th>1</th><td>I</td></tr>
-<tr><th>2</th><td>II</td></tr>
-<tr><th>3</th><td>III</td></tr>
-<tr><th>4</th><td>IV</td></tr>
-<tr><th>5</th><td>V</td></tr>
-<tr><th>6</th><td>VI</td></tr>
-<tr><th>R</th><td>run</td></tr>
+<tr><th>1</th><td>IV</td></tr>
+<tr><th>2</th><td>V</td></tr>
+<tr><th>3</th><td>VI</td></tr>
+<tr><th>4</th><td>III</td></tr>
+<tr><th>5</th><td>II</td></tr>
+<tr><th>6</th><td>I</td></tr>
+<tr><th>@</th><td>run</td></tr>
 <tr><th>S</th><td>select</td></tr>
 <tr><th>M</th><td>mode</td></tr>
 </table>
@@ -151,7 +189,7 @@ h6 { margin: 0 ; text-align: right ; }
 </td><td class="keymap">
 
 <h3>Lynx</h3>
-<table>
+<table class="center">
 <tr><th>U</th><td>up</td></tr>
 <tr><th>D</th><td>down</td></tr>
 <tr><th>L</th><td>left</td></tr>
@@ -166,7 +204,7 @@ h6 { margin: 0 ; text-align: right ; }
 </td><td class="keymap">
 
 <h3>NES</h3>
-<table>
+<table class="center">
 <tr><th>U</th><td>up</td></tr>
 <tr><th>D</th><td>down</td></tr>
 <tr><th>L</th><td>left</td></tr>
@@ -178,8 +216,12 @@ h6 { margin: 0 ; text-align: right ; }
 </table>
 
 </td></tr>
+<tr><td colspan="5" class="keymap">The Windows version of mednafen-rr won't run games for:
+<ul><li>Game Boy, Game Boy Advance, Sega Master System, Game Gear, PC-FX.</li></ul></td></tr>
 </table>
 
-<h6>7/17/2010</h6>
+</td></tr></table>
+
+<h6>7/20/2010</h6>
 </body>
 </html>

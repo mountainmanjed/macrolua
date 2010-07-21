@@ -1,6 +1,6 @@
 local $appname = "TranScripter"
-local $version = "1.0"
-local $verdate = "7/17/2010"
+local $version = "1.01"
+local $verdate = "7/20/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
 
@@ -11,14 +11,29 @@ local $configfile = "transcripter.ini"
 ; ------------------------------------------------------------------------------
 ; mednafen keymaps and mcm formats
 ; ------------------------------------------------------------------------------
-local $mcm[6][2] = [ _ ; mcm consoles: type, players
+local $ymv[13][2] = [ _ ; ymv keymap: description, symbol (order is as given)
+	["left",  "L"], _
+	["right", "R"], _
+	["up",    "U"], _
+	["down",  "D"], _
+	["start", "S"], _
+	["A",     "4"], _
+	["B",     "5"], _
+	["C",     "6"], _
+	["X",     "1"], _
+	["Y",     "2"], _
+	["Z",     "3"], _
+	["L",     "7"], _
+	["R",     "8"] _
+]
+
+local $mcm[5][2] = [ _ ; mcm consoles: type, players
 	["lynx",  1], _
 	["wswan", 1], _
 	["ngp",   1], _
 	["pce",   5], _
-	["pcfx",  2], _
 	["nes",   4] _
-] ;med-rr 1.1 won't run gb, gba, sms or gg games
+] ; med-rr 1.1 windows ver. won't run gb, gba, sms, gg, or pcfx games
 
 local $lynx[9][4] = [ _ ; mcm keymaps: description, symbol, byte, bit
 	["down",     "D", 1, 7], _
@@ -33,15 +48,15 @@ local $lynx[9][4] = [ _ ; mcm keymaps: description, symbol, byte, bit
 ]
 local $wswan[11][4] = [ _
 	["Y left",  "4", 1, 7], _
-	["Y down",  "2", 1, 6], _
+	["Y down",  "5", 1, 6], _
 	["Y right", "6", 1, 5], _
 	["Y up",    "8", 1, 4], _
 	["X left",  "L", 1, 3], _
 	["X down",  "D", 1, 2], _
 	["X right", "R", 1, 1], _
 	["X up",    "U", 1, 0], _
-	["B",       "Z", 2, 6], _
-	["A",       "Y", 2, 5], _
+	["B",       "2", 2, 6], _
+	["A",       "1", 2, 5], _
 	["start",   "S", 2, 4] _
 ]
 local $ngp[7][4] = [ _
@@ -58,17 +73,16 @@ local $pce[13][4] = [ _
 	["down",   "D", 1, 6], _
 	["right",  "R", 1, 5], _
 	["up",     "U", 1, 4], _
-	["I",      "1", 1, 0], _
-	["II",     "2", 1, 1], _
-	["III",    "3", 2, 0], _
-	["IV",     "4", 2, 1], _
-	["V",      "5", 2, 2], _
-	["VI",     "6", 2, 3], _
-	["run",    "R", 1, 3], _
+	["I",      "6", 1, 0], _
+	["II",     "5", 1, 1], _
+	["III",    "4", 2, 0], _
+	["IV",     "1", 2, 1], _
+	["V",      "2", 2, 2], _
+	["VI",     "3", 2, 3], _
+	["run",    "@", 1, 3], _
 	["select", "S", 1, 2], _
 	["mode",   "M", 2, 4] _
 ]
-local $pcfx = $pce ;assumed same as pce, needs confirmation
 local $nes[8][4] = [ _
 	["up",     "U", 1, 0], _
 	["down",   "D", 1, 1], _
@@ -80,11 +94,13 @@ local $nes[8][4] = [ _
 	["start",  "S", 1, 7] _
 ]
 
+local $file, $gamekeys, $nplayers, $nkeys, $bpp, $bpf, $reclength, $l, $base
+
 ; ------------------------------------------------------------------------------
 ; TranScripter ini parsing
 ; ------------------------------------------------------------------------------
 if not fileexists($configfile) then
-	msgbox(0x30, $configfile & " error", "Config file '" & $configfile & "' does not exist.")
+	msgbox(0x30, $configfile & " error", "Config file '" & $configfile & "' not found.")
 	exit
 endif
 
@@ -95,35 +111,69 @@ local $bak = execute(iniread($configfile, "settings", "create backup", true))
 local $truncate = execute(iniread($configfile, "settings", "truncate excess", true))
 local $showwarnings = execute(iniread($configfile, "settings", "show warnings", true))
 local $maxwarnings = iniread($configfile, "settings", "max warnings", 20)
-
-local $file = fileopen($rec, 0)
-filesetpos($file, 0x74, 0)
-local $t = findtype(fileread($file, 5))
-fileflush($file)
-local $gamekeys = eval($mcm[$t][0]), $nplayers = $mcm[$t][1], $nkeys = ubound($gamekeys)
-local $bpp = findbpp($t)
-local $bpf = $nplayers * $bpp + 1
-
-local $reclength = (filegetsize($rec)-0x100)/$bpf
+local $type = stringright($rec,3)
 
 select
 case not ($startframe == int($startframe) and $startframe > -1)
-	msgbox(0x30, $configfile & " error", "'start frame' (" & $startframe & ") must be a non-negative integer.")
+	msgbox(0x30, $configfile & " error", "start frame ('" & $startframe & "') must be a non-negative integer.")
 	exit
 case not fileexists($rec)
-	msgbox(0x30, $configfile & " error", "'movie file' (" & $rec & ") does not exist.")
-	exit
-case not stringright($rec,3) = "mcm"
-	msgbox(0x30, $configfile & " error", "'movie file' (" & $rec & ") must be an .mcm.")
+	msgbox(0x30, $configfile & " error", "movie file ('" & $rec & "') not found.")
 	exit
 case not fileexists($mis)
-	msgbox(0x30, $configfile & " error", "'script file' (" & $mis & ") does not exist.")
-	exit
-case ($reclength < $startframe)
-	msgbox(0x30, $configfile & " error", _
-		"'start frame' (" & $startframe & ") exceeds the framelength of the movie file (" & $reclength & ").")
+	msgbox(0x30, $configfile & " error", "script file ('" & $mis & "') not found.")
 	exit
 endselect
+
+switch $type
+case "ymv"
+	$gamekeys = $ymv
+	$nplayers = 1
+	$nkeys = ubound($gamekeys)
+	$file = fileopen($rec, 0)
+	$base = fileread($file)
+	$reclength = ubound(stringregexp(stringtrimleft($base, stringinstr($base, "|0|")-1), "\n\|.*\|.*\|", 3))+1
+	if stringinstr($base, @crlf) then
+		$l = @crlf
+	else
+		$l = @lf
+	endif
+	if $truncate then
+		$base = stringleft($base, stringinstr($base, "|0|", 0, $startframe+1)-1)
+	else
+		$base = stringinstr($base, "|0|", 0, $startframe+1)-1
+	endif
+case "mcm"
+	$file = fileopen($rec, 0)
+	filesetpos($file, 0x74, 0)
+	local $systype = findtype(fileread($file, 5))
+	fileflush($file)
+	$gamekeys = eval($mcm[$systype][0])
+	$nplayers = $mcm[$systype][1]
+	$nkeys = ubound($gamekeys)
+	$bpp = 0
+	for $k = 0 to ubound($gamekeys)-1 ; bytes per port/player
+		if $gamekeys[$k][2] > $bpp then $bpp = $gamekeys[$k][2]
+	next
+	$bpf = $nplayers * $bpp + 1 ; bytes per frame
+	$reclength = (filegetsize($rec)-0x100)/$bpf
+	if $truncate then
+		filesetpos($file, 0x00, 0)
+		$base = fileread($file, 0x100 + $startframe*$bpf)
+	else
+		$base = 0x100 + $startframe*$bpf
+	endif
+case else
+	msgbox(0x30, $configfile & " error", "movie file ('" & $rec & "') must be an .mcm or .ymv.")
+	exit
+endswitch
+fileclose($file)
+
+if ($reclength < $startframe) then
+	msgbox(0x30, $configfile & " error", _
+		"start frame (" & $startframe & ") exceeds the framelength of the movie file (" & $reclength & ").")
+	exit
+endif
 
 ; ------------------------------------------------------------------------------
 ; Script parser parameters
@@ -140,34 +190,22 @@ local $funckeys[9][2] = [ _
 	["-",         "pnext()"] _
 ]
 
-local $status = 0, $l = @crlf, $framemame = false, $showlinenumbers = false, $warningstring = "", $useF_B = true
+local $status = 0, $framemame = false, $warningstring = "", $useF_B = true
 local $macrosize, $warningcount, $player, $nextkey, $unused, $frame, $line, $bracket[$nplayers+1], $inbrackets, _
-	$press[$nplayers][$nkeys], $hold[$nplayers][$nkeys], $inputstream[1][$nplayers][$nkeys], $base
+	$press[$nplayers][$nkeys], $hold[$nplayers][$nkeys], $inputstream[1][$nplayers][$nkeys]
 
-local $viewarray[5][2] = [ _
-	[      "Raw string", ""], _
-	["Processed string", ""], _
-	[    "Input stream", ""], _
-	[    "Delta stream", ""], _
-	[   "Command queue", ""] _
-]
-
-filesetpos($file, 0x00, 0)
-$base = fileread($file, 0x100 + $startframe*$bpf)
-fileclose($file)
-
-loadscript($mis)
+local $result = loadscript($mis)
 if $warningcount > 0 and $showwarnings then msgbox(0x30, $warningcount & " warnings", $warningstring)
 if not ($status = 4) then exit
 
 if $bak then filecopy($rec, $rec & ".backup", 1)
 if $truncate then
 	$file = fileopen($rec, 2)
-	filewrite($file, $base & $viewarray[4][1])
+	filewrite($file, $base & $result) ;  if $truncate then getvartype($base) = "string"
 else
 	$file = fileopen($rec, 1)
-	filesetpos($file, 0x100 + $startframe*$bpf, 0)
-	filewrite($file, $viewarray[4][1])
+	filesetpos($file, $base, 0) ; if not $truncate then getvartype($base) = "int"
+	filewrite($file, $result)
 endif
 fileclose($file)
 
@@ -178,16 +216,8 @@ func findtype(byref $id) ; find the console type
 	for $k = 0 to ubound($mcm)-1
 		if stringinstr($id, $mcm[$k][0]) then return($k)
 	next
-	msgbox(0x30, "Error", "Can't determine console type from .mcm header.")
+	msgbox(0x30, "Error", "Can't determine console type from '" & $rec & "' header.")
 	exit
-endfunc
-
-func findbpp(byref $t) ; find the bytes per port/player
-	local $b = 0
-	for $k = 0 to ubound($gamekeys)-1
-		if $gamekeys[$k][2] > $b then $b = $gamekeys[$k][2]
-	next
-	return $b
 endfunc
 
 func message(byref $msg)
@@ -232,9 +262,6 @@ func loadscript($file)
 	local $macro = fileread($macrohandle)
 	fileclose($macrohandle)
 
-	$viewarray[0][1] = $macro ; Raw string dump
-	;message("Loading " & $file & "...")
-
 ; Remove lines commented with "#"
 	$macro = stringregexpreplace($macro, "#.*","")
 
@@ -261,9 +288,6 @@ func loadscript($file)
 
 ; Remove commas, spaces and tabs
 	$macro = stringregexpreplace($macro, "[, \t]", "")
-
-; Final string dump
-	$viewarray[1][1] = $macro 
 
 ; ------------------------------------------------------------------------------
 ; Process each character of the string to prepare the input stream array
@@ -310,114 +334,42 @@ func loadscript($file)
 	if $unused then warning('Input left unprocessed: ' & $unused)
 
 ; ------------------------------------------------------------------------------
-; Produce the string dumps and the command queue from the input stream array
-	local $ndigits = digits($macrosize), $lastframe[$nplayers][$nkeys], $idle = 0, $activity = false, _
-		$inputdump = "", $deltadump = "", $comdump = ""
+; Produce the string to be written to file from the input stream array
+	local $comdump = ""
 
-; Header row
-	if $showlinenumbers then
-		for $d = 1 to $ndigits
-			$inputdump &= " "
-			$deltadump &= " "
-		next
-		$inputdump &= " "
-		$deltadump &= " "
-	endif
-
-	for $p = 0 to ubound($inputstream, 2)-1
-		$inputdump &= "|"
-		$deltadump &= "|"
-		for $k = 0 to ubound($inputstream, 3)-1
-			$inputdump &= $gamekeys[$k][1]
-			$deltadump &= $gamekeys[$k][1]
-		next
-	next
-	$inputdump &= "|" & $l
-	$deltadump &= "|" & $l
-
-; Frame rows
-	for $f = 0 to ubound($inputstream, 1)-1
-		$comdump &= chr(00) ; blank control byte
-		$activity = false
-		if $showlinenumbers then
-			$inputdump &= stringformat("%" & $ndigits & "d", $f) & " "
-			$deltadump &= stringformat("%" & $ndigits & "d", $f) & " "
-		endif
-		for $p = 0 to ubound($inputstream, 2)-1
-			$inputdump &= "|"
-			$deltadump &= "|"
-			local $byte[$bpp]
-			for $k = 0 to ubound($inputstream, 3)-1
-				if $inputstream[$f][$p][$k] then
-					$byte[$gamekeys[$k][2]-1] += 2^$gamekeys[$k][3]
-					$inputdump &= $gamekeys[$k][1]
-					if not $lastframe[$p][$k] then
-						$deltadump &= "+"
-						;updatequeue('send("{' & $gamekeys[$k][$p+2] & ' down}")', $activity, $idle)
+	switch $type
+	case "ymv"
+		for $f = 0 to ubound($inputstream, 1)-1
+			$comdump &= "|0" ; blank control byte
+			for $p = 0 to ubound($inputstream, 2)-1
+				$comdump &= "|"
+				for $k = 0 to ubound($inputstream, 3)-1
+					if $inputstream[$f][$p][$k] then
+						$comdump &= $gamekeys[$k][1]
 					else
-						$deltadump &= "."
+						$comdump &= "."
 					endif
-					$lastframe[$p][$k] = true
-				else
-					$inputdump &= "."
-					if $lastframe[$p][$k] then
-						$deltadump &= "-"
-						;updatequeue('send("{' & $gamekeys[$k][$p+2] & ' up}")', $activity, $idle)
-					else
-						$deltadump &= " "
-					endif
-					$lastframe[$p][$k] = false
-				endif
+				next
 			next
-			for $b in $byte
-				$comdump &= chr($b)
+			$comdump &= "|" & $l
+		next
+	case "mcm"
+		for $f = 0 to ubound($inputstream, 1)-1
+			$comdump &= chr(00) ; blank control byte
+			for $p = 0 to ubound($inputstream, 2)-1
+				local $byte[$bpp]
+				for $k = 0 to ubound($inputstream, 3)-1
+					if $inputstream[$f][$p][$k] then $byte[$gamekeys[$k][2]-1] += 2^$gamekeys[$k][3]
+				next
+				for $b in $byte
+					$comdump &= chr($b)
+				next
 			next
 		next
-		$inputdump &= "|" & $l
-		$deltadump &= "|" & $l
-		if $activity then $idle = 0
-		$idle += 1
-	next
+	endswitch
 
-; Release anything pressed on the last frame
-	$activity = false
-	if $showlinenumbers then $deltadump &= $macrosize & " "
-	for $p = 0 to ubound($inputstream, 2)-1
-		$deltadump &= "|"
-		for $k = 0 to ubound($inputstream, 3)-1
-			if $lastframe[$p][$k] then
-				$deltadump &= "-"
-				;updatequeue('send("{' & $gamekeys[$k][$p+2] & ' up}")', $activity, $idle)
-			else
-				$deltadump &= " "
-			endif
-		next
-	next
-	$deltadump &= "|" & $l
-
-#cs
-; Remove the last element (always empty) from $comqueue
-	if ubound($comqueue) > 1 then
-		redim $comqueue[ubound($comqueue)-1]
-	else
-		warning("There are zero commands in this script.")
-	endif
-
-; Produce the command queue string from the array
-	for $e in $comqueue
-		$comdump &= $e & $l
-	next
-#ce
-
-	$viewarray[2][1] = $inputdump
-	$viewarray[3][1] = $deltadump
-	$viewarray[4][1] = $comdump
-	;guictrlsetdata($progress, 0)
 	setstatus(4)
-	;$loadedfile = $file
-	;$scripttimestamp = filegettime($loadedfile, 0, 1)
-	;winsettitle($details, "", "Script analysis: " & $loadedfile)
-	;message("Done loading script." & $l)
+	return($comdump)
 
 endfunc ;==>parse
 
@@ -625,27 +577,3 @@ func warning(byref $msg)
 	endif
 	$warningcount += 1
 endfunc
-
-; find the number of digits for printing frame numbers evenly
-func digits(byref $num)
-	local $ndigits = 0, $result = $num+1
-	while $result > 1
-		$result /= 10
-		$ndigits += 1
-	wend
-	return $ndigits
-endfunc
-
-#cs
-; what to do when something in the input stream changed
-func updatequeue(byref $command, byref $act, byref $id)
-	if not $act and $id > 0 then
-		$comqueue[ubound($comqueue)-1] = 'sleep(' & $framelength*$id & ')'
-		redim $comqueue[ubound($comqueue)+1]
-		$id = 0
-	endif
-	$comqueue[ubound($comqueue)-1] = $command
-	redim $comqueue[ubound($comqueue)+1]
-	$act = true
-endfunc
-#ce
