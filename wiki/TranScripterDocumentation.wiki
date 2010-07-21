@@ -1,4 +1,5 @@
 #summary This document is also available in the download package.
+#labels Featured
 
 <wiki:toc max_depth="2" />
 
@@ -40,28 +41,29 @@ For launching the program, it's recommended to start out with the frontend, Medn
 
 Just load a ROM:
 
-`mednafen ROMs\myrom.zip`
+{{{mednafen ROMs\myrom.zip}}}
 
 Double the screen size for !NeoGeo Pocket:
 
-`mednafen -ngp.xscale 2 -ngp.yscale 2 ROMs\myrom.zip`
+{{{mednafen -ngp.xscale 2 -ngp.yscale 2 ROMs\myrom.zip}}}
 
 Load a ROM and a savestate:
 
-`mednafen -loadstate mcs\myrom.nc0 ROMs\myrom.zip`
+{{{mednafen -loadstate mcs\myrom.nc0 ROMs\myrom.zip}}}
 
 Record a movie:
 
-`mednafen -mov mcm\mymovie.mcm -record 1 ROMs\myrom.zip`
+{{{mednafen -mov mcm\mymovie.mcm -record 1 ROMs\myrom.zip}}}
 
 Play a movie and fast-forward with a savestate:
 
-`mednafen -mov mcm\mymovie.mcm -play 1 -loadstate mcs\myrom.nc0 ROMs\myrom.zip`
+{{{mednafen -mov mcm\mymovie.mcm -play 1 -loadstate mcs\myrom.nc0 ROMs\myrom.zip}}}
 
 Play a movie and record 2000 frames to an mmm file:
 
-`mednafen -mov mcm\mymovie.mcm -play 1 -mmm 1 -mmmfile mcm\dump.mmm -mmmframes 2000 ROMs\myrom.zip`
+{{{mednafen -mov mcm\mymovie.mcm -play 1 -mmm 1 -mmmfile mcm\dump.mmm -mmmframes 2000 ROMs\myrom.zip}}}
 
+----
 = How to use !TranScripter =
 
    # Launch your game, deactivate read-only mode (*shift+t*) and start recording a movie (*ctrl+shift+r*) up to the point where you want the script to start. Save a state (*shift+F1*).
@@ -72,6 +74,7 @@ Play a movie and record 2000 frames to an mmm file:
    # Restart movie playback (*shift+p*), load the state (*F1*), and observe the result.
    # Edit the _.mis_ file with any changes and repeat the last two steps until the desired results are achieved.
 
+----
 = Writing scripts =
 
 The basic format is the same as [AutoMacroDocumentation AutoMacro]. There's no Lua, so savestate operations cannot be scripted.
