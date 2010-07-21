@@ -101,3 +101,23 @@
 == v1.0, 5/4/2010 ==
 
 === Initial public release ===
+
+----
+= !TranScripter =
+
+== v1.01 7/20/2010 ==
+
+=== Enhancement: ===
+ * added support for yabause-rr, but YMV can still only do 1 player
+
+=== Problems fixed: ===
+ * error checking bugs
+ * bad keymaps
+
+=== Documentation: ===
+ * won't support Linux-only systems for med-rr unless someone requests otherwise
+
+== v1.0, 7/17/2010 ==
+
+=== Initial release ===
+ * for mednafen-rr only
