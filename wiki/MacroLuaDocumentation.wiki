@@ -112,11 +112,11 @@ Each emulator has its own limit on savestate indexes.
 ----
 = Control modules =
 
-The game inputs and the symbols used to activate them depend on game system. MacroLua selects the symbol-input mapping based on what emulator is running it, and in the case of arcade, based on the game being run. The available sets are written in macro-modules.lua, and more can be added. Ask for help if needed.
+The game inputs and the symbols used to activate them depend on game system. !MacroLua selects the symbol-input mapping based on what emulator is running it, and in the case of arcade, based on the game being run. The available sets are written in macro-modules.lua, and more can be added. Ask for help if needed.
 
 The traditional format is `U`,`D`,`L`,`R` for up, down, left and right, and numbers counting up from `1` for the buttons. The non-arcade systems have a single keyset for all games, so the format only needs to be defined once for each console.
 
-However, there are many undefined arcade profiles. MacroLua tries to autogenerate an arcade module if none is available by observing what keys are present in the game. This should work well with games that use an ordinary joystick and numbered buttons.
+However, there are many undefined arcade profiles. !MacroLua tries to autogenerate an arcade module if none is available by observing what keys are present in the game. This should work well with games that use an ordinary joystick and numbered buttons.
 
 ----
 = Configuration options =
