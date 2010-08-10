@@ -6,6 +6,21 @@
 ----
 = !MacroLua =
 
+== v1.08, 8/9/2010 ==
+
+=== New features: ===
+ * Support for MAME-rr, but read the comments in documentation.
+ * If used with an FBA/MAME game that has no known module, one is generated automatically.
+ * Looping mode repeats the script indefinitely. Invoke by writing "###" in the .mis file.
+
+=== Enhancements: ===
+ * Better method of designating modules in FBA/MAME that checks the ROM name.
+ * When recording input in FBA/MAME, .mis files are automatically named after the ROM.
+
+=== Documentation: ===
+ * FBA-rr now supports Lua+user input, Lua hotkeys, & bulletproof savestates
+   * Minimum required version of FBA-rr is now 0.0.5
+
 == v1.07, 6/13/2010 ==
 
 === Problems fixed: ===
