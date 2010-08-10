@@ -1,5 +1,5 @@
 // Sample music mute codes for FBA
-// These should all work on the clones as well.
+// These mostly work on the clones as well.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Works on the following NeoGeo games:
@@ -55,11 +55,17 @@ cheat "background music"
 1 "mute", 0, 0x2078D06, 0x00
 
 ////////////////////////////////////////////////////////////////////////////////
-// Works on the CPS3 game: jojo
+// Works on the CPS3 games: jojo jojon
 
 cheat "background music"
 0 "default"
 1 "mute", 0, 0x206B90E, 0x00
+
+// Works on the CPS3 games: jojoa jojoan
+
+cheat "background music"
+0 "default"
+1 "mute", 0, 0x2068D6A, 0x00
 
 ////////////////////////////////////////////////////////////////////////////////
 // Works on the CPS3 game: jojoba

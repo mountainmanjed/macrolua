@@ -1,0 +1,12 @@
+### SSFT2 tick throw reversal escape training
+# speed: turbo 3
+# P2 Zangief does c.LK, SPD
+# P1 Guile must reversal flash kick
+
+&1 W120-
+D4.W18,U.B.D.F3.
+W120!
+
+&1 _D_4,W120
+<W21^D.U^4./D4.W18,U.B.D.F3.>
+W120!
