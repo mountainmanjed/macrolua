@@ -11,13 +11,12 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "1.08, 8/9/2010"
+local version = "1.09, 9/10/2010"
 print("MacroLua v"..version)
-if fba and not emu.registerstart then error("This script requires a newer version of FBA-rr.", 0) end
+if fba and not emu.registerstart then error("MacroLua requires a newer version of FBA-rr.", 0) end
 
-dofile("macro-options.lua","r")
-dofile("macro-modules.lua","r")
-if fba or mame and showarcadeinput then dofile("input-display.lua","r") end
+dofile("macro-options.lua", "r")
+dofile("macro-modules.lua", "r")
 
 emu = emu or gens --gens doesn't have the "emu" table of functions
 
@@ -27,13 +26,52 @@ end
 
 local guiregisterhax = FCEU or pcsx --exploit that allows checking for hotkeys while paused
 
-if input.registerhotkey then
-	print("Press Lua hotkey 1 for playback.")
-	print("Press Lua hotkey 2 for recording.")
-	print("Press Lua hotkey 3 to convert to one line per frame format.") print()
-else
-	print("Press",playkey,"for playback and",recordkey,"for recording.") print()
+local inp_display_script = "input-display.lua"
+local display_input = true
+
+local function toggleinputdisplay(report)
+	if not io.open(inp_display_script, "r") then
+		print("Warning: unable to open '" .. inp_display_script .. "'")
+		return
+	end
+	if display_input then
+		dofile(inp_display_script, "r")
+	else
+		gui.clearuncommitted()
+		gui.register(function()
+		end)
+	end
+	if report then print("Input display " .. (display_input and "on." or "off.")) end
+	display_input = not display_input
 end
+
+if input.registerhotkey then
+	print("* Press Lua hotkey 1 for playback.")
+	print("* Press Lua hotkey 2 for recording.")
+	print("* Press Lua hotkey 3 to toggle pause after playback.")
+	print("* Press Lua hotkey 4 to convert to one line per frame format.")
+	print("* Press Lua hotkey 5 to toggle input display.")
+	if fba or mame then
+		toggleinputdisplay()
+		input.registerhotkey(5, function()
+			toggleinputdisplay(true)
+		end)
+	end
+else
+	for _, key in ipairs({
+		{playkey,        "for playback."},
+		{recordkey,      "for recording."},
+		{togglepausekey, "to toggle pause after playback."},
+		{inputstreamkey, "to convert to one line per frame format."},
+	}) do
+		if type(key[1]) and key[1]:len() > 0 then
+			print("* Press '" .. key[1] .. "' " .. key[2])
+		else
+			print("* No hotkey defined " .. key[2])
+		end
+	end
+end
+print()
 
 local module,nplayers,useF_B
 
@@ -271,10 +309,15 @@ end
 --[[ Read, interpret, and perform cleanup on the playback macro. ]]--
 
 local function parse(macro)
-	local file = io.input(path:gsub("\\", "/") .. macro)
-	local m = "\n"..file:read("*a").."\n" --Open and read the file.
+	local file = path:gsub("\\", "/") .. macro
+	if not io.open(file, "r") then
+		print("Warning: unable to open '" .. file .. "'")
+		return
+	end
+	local file = io.input(file)
+	local m = "\n" .. file:read("*a") .. "\n" --Open and read the file.
 	file:close() --Close the file.
-	if framemame then
+	if framemame and fba or mame then
 		m = m:gsub("[aA][cCsS] ?%d+", "") --Remove frameMAME audio commands.
 		m = m:gsub("[aA][rR] ?%d+ %d+", "") --Remove frameMAME audio commands.
 		m = m:gsub("[aA][mM!]", "") --Remove frameMAME audio commands.
@@ -328,6 +371,7 @@ local function parse(macro)
 	end
 
 	frame = 0
+	return frame
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -438,7 +482,7 @@ end
 ----------------------------------------------------------------------------------------------------
 --[[ Set up the variables and functions for user control of playback and recording. ]]--
 
-local playing,recording,pausenow,framediff = false,false,false
+local playing,recording,pauseafterplay,pausenow,framediff = false,false,false,false
 
 local function bulletproof(active, f1, f2, t1, t2) --1=current, 2=loaded
 	if not active then return false end
@@ -474,7 +518,15 @@ if savestate.registersave and savestate.registerload then --registersave/registe
 	end)
 	
 	savestate.registerload(function(slot)
-		if mame then framediff = savestate.loadscriptdata(slot) return end
+		if mame then
+			framediff = savestate.loadscriptdata(slot)
+			if playing and not framediff then
+				print("Savestate " .. slot .. " has no framecount data. This macro may not play correctly!")
+				print("Resave this savestate with the script running and idle to avoid problems.")
+				framediff = emu.framecount()
+			end
+			return
+		end
 		if not playing and not recording then return end
 		if playing and not loopmode then print("Loaded from slot", slot, "while playing frame", frame) end
 		if recording then print("Loaded from slot", slot, "while recording frame", recframe) end
@@ -504,7 +556,7 @@ end
 
 local function playcontrol()
 	if not playing then
-		parse(playbackfile)
+		if not parse(playbackfile) then return end
 		dostate(frame)
 		if not warning("Macro is zero frames long.", macrosize == 0) then
 			print("Now playing " .. playbackfile .. " (" .. macrosize .. " frames)" .. (loopmode and " in loop mode" or ""))
@@ -532,7 +584,7 @@ end
 
 local function dumpinputstream()
 	if not playing then
-		parse(playbackfile)
+		if not parse(playbackfile) then return end
 		if not warning("Macro is zero frames long.", macrosize == 0) then
 			local dump = ""
 			for p=1,nplayers do --header row
@@ -569,7 +621,12 @@ emu.registerexit(function() --Attempt to save if the script exits while recordin
 	if recording then recording = false finalize(recinputstream) end
 end)
 
-local oldplaykey,oldrecordkey,olddumpkey
+local oldplaykey,oldrecordkey,oldpausekey,olddumpkey
+
+local function togglepause()
+	pauseafterplay = not pauseafterplay
+	print("Pause after playback mode: " .. (pauseafterplay and "on" or "off"))
+end
 
 if input.registerhotkey then --use registerhotkey if available
 	input.registerhotkey(1, function()
@@ -581,12 +638,14 @@ if input.registerhotkey then --use registerhotkey if available
 	end)
 
 	input.registerhotkey(3, function()
+		togglepause()
+	end)
+
+	input.registerhotkey(4, function()
 		dumpinputstream()
 	end)
 elseif guiregisterhax then --otherwise try to exploit the constantly running gui.register (fceux and pcsx)
 	gui.register(function()
-		if displayfunc then displayfunc() end
-
 		local nowplaykey = input.get()[playkey]
 		if nowplaykey and not oldplaykey then
 			playcontrol()
@@ -598,6 +657,12 @@ elseif guiregisterhax then --otherwise try to exploit the constantly running gui
 			reccontrol()
 		end
 		oldrecordkey = nowrecordkey
+
+		local nowpausekey = input.get()[togglepausekey]
+		if nowpausekey and not oldpausekey then
+			togglepause()
+		end
+		oldpausekey = nowpausekey
 
 		local nowdumpkey = input.get()[inputstreamkey]
 		if nowdumpkey and not olddumpkey then
@@ -623,6 +688,12 @@ emu.registerbefore(function()
 			reccontrol()
 		end
 		oldrecordkey = nowrecordkey
+
+		local nowpausekey = input.get()[togglepausekey]
+		if nowpausekey and not oldpausekey then
+			togglepause()
+		end
+		oldpausekey = nowpausekey
 
 		local nowdumpkey = input.get()[dumpkey]
 		if nowdumpkey and not olddumpkey then
