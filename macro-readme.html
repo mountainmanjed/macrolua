@@ -65,6 +65,7 @@ h6 { margin: 0 ; text-align: right ; }
 <h2><a name="mame-rr" />A word on MAME-rr</h2>
 <p>The current version of <a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a> (0139-test2) has some oddities with the savestate system and the first few scripted frames get merged together. To avoid problems:</p>
 <ul>
+<li>The savestate you want to start from should be saved while the script is loaded and not playing.</li>
 <li>Start playing scripts with the emulator in an unpaused state. Starting from pause will be off by one frame.</li>
 <li>Leave at least a few blank frames at the start.</li>
 <li>Don't try to load states if using recording mode. Recording is not bulletproof.</li>
@@ -92,8 +93,8 @@ h6 { margin: 0 ; text-align: right ; }
 <p>If the emulator supports <code>input.registerhotkey()</code>, the keys to start and stop macros are Lua hotkeys 1 and 2 rather than semicolon and quote. These keys can be bound in the emulator's hotkey configuration.</p>
 
 <h3><a name="savestates" />Savestates</h3>
-<p>If the emulator supports <code>savestate.registersave()</code> and <code>savestate.registerload()</code>, the progress of any macros being played or recorded is saved alongside the savestate. Loading this savestate also restores the progress and the playing/recording status. If those functions are not supported, loading a savestate during a macro will cause a desync.</p>
-<p>Even if those functions aren't available, savestate operations may be invoked manually or written into the script, and scripts should start from a savestate to ensure consistent playback. Savestate operations are not recorded in macro recording mode.</p>
+<p>Some emulators allow the progress of any macros being played or recorded to be saved alongside the savestate. Loading this savestate also restores the progress and the playing/recording status. If this is not supported, loading a savestate during a macro will cause a desync.</p>
+<p>Even if those functions aren't available, savestate operations may always be written into the script, and scripts should start with a savestate to ensure consistent playback. Savestate operations are not recorded in macro recording mode.</p>
 
 <hr />
 
@@ -101,7 +102,7 @@ h6 { margin: 0 ; text-align: right ; }
 <p>You may produce macros by recording them or by writing them out according to the format below.</p>
 <p>In the following commands, <code>n</code> represents a number and <code>k</code> represents a key (direction, button or switch) defined by the game's <a href="#modules">module</a>.</p>
 <table>
-<tr><th width="8%"><code>k</code></th>
+<tr><th><code>k</code></th>
 <td>Input the gamekey <code>k</code>. The key is pressed for the current frame only and then released.</td></tr>
 
 <tr><th><code>_k</code></th>
@@ -205,11 +206,11 @@ h6 { margin: 0 ; text-align: right ; }
 <td>Press to start playing the specified script or to cancel an already playing script.</td></tr>
 <tr><th><code>recordkey</code></th>
 <td>Press to start recording input to a new script and to finish a recording in progress.</td></tr>
+<tr><th><code>togglepausekey</code></th>
+<td>When a script finishes, the game can be paused automatically. Press this to turn autopause on or off.</td></tr>
 <tr><th><code>inputstreamkey</code></th>
 <td>Press to convert the playback file to the expanded one-line-per-frame format. The result will be saved as a text file.
 <br />This feature can help in analyzing scripts. MacroLua cannot currently parse files in this format.</td></tr>
-<tr><th><code>pauseafterplay</code></th>
-<td>Set to <code>true</code> to pause after a script finishes playing or <code>false</code> to not pause.</td></tr>
 <tr><td colspan="2" align="center">After recording player input, the results are written to file. The following three options affect the style of the output:</td></tr>
 <tr><th><code>longwait</code></th>
 <td>Idle frames are collapsed into <code>Wn</code> phrases as a shorthand. This option specifies the minimum number of idle frames to trigger this. Set it to <code>0</code> to never use <code>Wn</code> phrases.</td></tr>
@@ -217,22 +218,20 @@ h6 { margin: 0 ; text-align: right ; }
 <td>When an input is active for many consecutive frames, it is abbreviated as a <code>_k</code> at the beginning and a corresponding <code>^k</code> at the end instead of writing <code>k</code> every frame. This option specifies the minimum number of held frames to trigger this. Set it to <code>0</code> to never use <code>_k ^k</code> phrases.</td></tr>
 <tr><th><code>longline</code></th>
 <td>Each player's input can be broken up into multiple lines. This option specifies the minimum number of characters to trigger a linebreak. Set it to <code>0</code> to not break up lines.</td></tr>
-<tr><th><code>showarcadeinput</code></th>
-<td>If set to <code>true</code>, this option runs the included <i>input-display.lua</i> script with FBA-rr or MAME-rr, which shows what inputs are being pressed by the players. It has no effect for other emulators, which have their own built-in display features.</td></tr>
 <tr><th><code>framemame</code></th>
-<td>Set to <code>true</code> only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as <code>false</code>.</td></tr>
+<td>Set to <code>true</code> only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as <code>false</code>. This only applies to FBA-rr and MAME-rr.</td></tr>
 </table>
 
-<p>If using hotkeys, they must be selected from the following list. <b>Key names are case sensitive.</b></p>
+<p>If the emulator doesn't use Lua hotkeys, you must define hotkeys manually. They must be selected from the following list.<br /><b>Key names are case sensitive.</b></p>
 <p><code> shift, control, alt, capslock, numlock, scrolllock, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, backspace, tab, enter, pause, escape, space, pageup, pagedown, end, home, insert, delete, left, up, right, down, numpad0, numpad1, numpad2, numpad3, numpad4, numpad5, numpad6, numpad7, numpad8, numpad9, numpad*, numpad+, numpad-, numpad., numpad/, tilde, plus, minus, leftbracket, rightbracket, semicolon, quote, comma, period, slash, backslash</code></p>
 <hr />
 
 <h2><a name="mutebgm" />How to mute the background music in arcade games</h2>
 <p>You may want to record videos with the sound effects but without the music. The reliable method to disable music is with a cheat code: The memory addresses that control music are forced to hold values that prevent it from playing.</p>
 
-<p>Find the code that works for your game in the <i>./FBA examples/mutecodes.txt</i> file provided. Copy the code into an .ini file that matches the rom's short name and put it in FBA's cheat folder (e.g. <i>./support/cheats/sfa3.ini</i>). You may augment this file with other codes as well. Then run the rom (restart if already running) and find <i>Enable Cheats</i> in the <i>Misc</i> menu. If the .ini is properly formatted, the option is available. Click the music entry and select the disable option from the dropbox.</p>
+<p>For FBA-rr, find the code that works for your game in the <i>./FBA examples/mutecodes.txt</i> file provided. Copy the code into an .ini file that matches the rom's short name and put it in FBA's cheat folder (e.g. <i>./support/cheats/sfa3.ini</i>). You may augment this file with other codes as well. Then run the rom (restart if already running) and find <i>Enable Cheats</i> in the <i>Misc</i> menu. If the .ini is properly formatted, the option is available. Click the music entry and select the disable option from the dropbox.</p>
 
-<p>Most of the available FBA mute codes have been converted to MAME xml format and are found in the <a href="http://cheat.retrogames.com/">official cheat code pack</a>. Place <i>cheat.zip</i> in MAME's folder to make the codes available.</p>
+<p>The available FBA mute codes have been converted to MAME xml format and are found in the <a href="http://cheat.retrogames.com/">official cheat code pack</a>. Place <i>cheat.zip</i> in MAME-rr's folder to make the codes available. Access the cheats from the in-game menu in MAME.</p>
 
 <p>Not all games have known mute codes. You can request more at <a href="http://www.mamecheat.co.uk/forums/">Pugsy's site</a>.</p>
 
@@ -244,21 +243,21 @@ h6 { margin: 0 ; text-align: right ; }
 <tbody align="center">
 <tr><th>emulator</th><th>version tested</th><th><code>emu</code> alias</th><th>hotkey while<br />paused</th><th>lua+user<br />input</th><th>bulletproof<br />savestates</th><th>adapt to<br />ROMs</th></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a></td><td>0139-test2</td><td class="yes"><code>mame</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a></td><td>0139-test2</td><td class="yes"><code>mame</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td>0.0.5</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td>0.0.5a</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td>0.1.3</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td>0.1.3b</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td>11a</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td>11b</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td>1.43 v17 r123<br />1.51 v6 r113<a class="foot" href="#1">[1]</a></td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td>1.43 svn146<br />1.51 svn147<a class="foot" href="#1">[1]</a></td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td>v22 r203</td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td>svn217</td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
 <tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td>2.1.4a</td><td class="yes"><code>FCEU</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td>r128</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td>SVN128</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
 
 <tr><th><a href="http://desmume.org/">DeSmuMe</a></th><td>0.9.6</td><td colspan="5">not yet tested</td></tr>
 <tr><th><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></th><td>1.1</td><td colspan="5">use <a href="http://code.google.com/p/macrolua/wiki/TranScripterDocumentation">TranScripter</a></td></tr>
@@ -279,12 +278,12 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th>lua+user input</th>
 <td>The emulator may take input from both a Lua script and the user simultaneously if <code>joypad.set()</code> allows it.</td></tr>
 <tr><th>bulletproof savestates</th>
-<td>The user may load savestates while playing or recording without losing progress if <code>savestate.registersave() and savestate.registerload()</code> are available.
+<td>The user may load savestates while playing or recording without losing progress if <code>savestate.registersave() and savestate.registerload()</code> are available. MAME-rr has other problems with savestates.
 <br /><br />This feature has not been well tested.</td></tr>
 <tr><th>adapt to ROMs</th>
 <td>MacroLua can name recordings and reset the control scheme based on the loaded game if <code>emu.registerstart()</code> and a function that returns the name of the game are present.</td></tr>
 </table>
 
-<h6>8/9/2010</h6>
+<h6>9/10/2010</h6>
 </body>
 </html>
