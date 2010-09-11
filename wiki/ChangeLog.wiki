@@ -6,6 +6,19 @@
 ----
 = !MacroLua =
 
+== v1.09, 9/10/2010 ==
+
+=== Enhancements: ===
+ * Trying to load a missing macro file results in a warning and not a crash.
+ * In MAME-rr, loading a state that wasn't saved while the script was running caused a crash. This is changed to a warning with instructions.
+ * Turning pause after playback on and off is now handled by a Lua hotkey (if available) or a predefined hotkey instead of a setting in the options file.
+ * Turning input display on and off is now handled by a Lua hotkey instead of a setting in the options file. !MacroLua will throw a warning instead of crashing if the input display script can't be loaded. This only applies to FBA/MAME.
+ * The input display scripts have been removed from the package because they are now included with both FBA-rr and MAME-rr.
+ * The options in `macro-options.lua` are organized better.
+
+=== Documentation: ===
+ * Tested the latest versions of the supported emulators. (None of them improve !MacroLua support.)
+
 == v1.08, 8/9/2010 ==
 
 === New features: ===
