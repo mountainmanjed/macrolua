@@ -554,12 +554,14 @@ local function dostate(f)
 	end
 end
 
-local function playcontrol()
+local function playcontrol(silent)
 	if not playing then
 		if not parse(playbackfile) then return end
 		dostate(frame)
 		if not warning("Macro is zero frames long.", macrosize == 0) then
-			print("Now playing " .. playbackfile .. " (" .. macrosize .. " frames)" .. (loopmode and " in loop mode" or ""))
+			if not silent then
+				print("Now playing " .. playbackfile .. " (" .. macrosize .. " frames)" .. (loopmode and " in loop mode" or ""))
+			end
 			playing = true
 			framediff = emu.framecount()
 		end
@@ -728,11 +730,11 @@ emu.registerbefore(function()
 			end
 		end
 		if frame > macrosize then
+			playing = false
+			inputstream = nil
 			if loopmode then
-				frame = -1
+				playcontrol(true)
 			else
-				playing = false
-				inputstream = nil
 				print("Macro finished playing.") print()
 				pausenow = pauseafterplay
 			end
