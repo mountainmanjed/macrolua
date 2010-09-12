@@ -6,6 +6,26 @@
 ----
 = !MacroLua =
 
+== v1.10, 9/12/2010 ==
+
+=== Enhancements: ===
+ * Dumping to text file in frame-by-frame format is no longer invoked with a hotkey. Instead, it will be done if the script has an uncommented `???` written in it when played. This was done to free up a hotkey and to ensure that dump files don't get created accidentally.
+ * Loop mode has been changed to reparse the whole script rather than repeating the contents of the initial read. This allows the user to edit and save the macro while it's playing and observe the changes without reentering the play command.
+
+=== New features: ===
+ * Incremental wait mode. If a wait command in the script is followed by a `?`, the script will be played in a special loop mode in which the specified wait value is incremented after each iteration. (For example, `W20?` waits for 20 frames and increases that by one after each try.) This is a more efficient way of finding the optimal wait period for a setup.
+   * Unlike loop mode, the script does not get reread between iterations.
+   * There can only be one point in the script with an incremental wait. Only the first is used if multiple points are present.
+ * The hotkey that used to activate text dump mode has a new function: If in incremental wait mode, pressing this key causes the wait value to cycle between increasing, decreasing, and holding steady. Otherwise, this key toggles between loop mode and normal mode.
+   * Loop mode is no longer invoked with `###`.
+   * If active, autopause will pause between iterations of loop mode or incremental wait.
+
+Only one of the three special modes can be active at once. The priority from highest to lowest is:
+|| *Special mode* || *activate by:* ||
+|| text dump mode || writing "`???`" ||
+|| incremental wait mode || writing "`W`(number)`?`" ||
+|| standard loop mode || toggle loop hotkey ||
+
 == v1.09, 9/10/2010 ==
 
 === Enhancements: ===
