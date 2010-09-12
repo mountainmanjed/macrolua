@@ -70,6 +70,7 @@ In the following commands, `n` represents a number and `k` represents a key (dir
 ||||`F` and `B` only get substituted if the module is using `L` and `R` and not already using `F` or `B`.||
 ||*`.`*||Advance one frame.||
 ||*`Wn`*||Advance (wait) n frames.||
+||*`Wn?`*||Incremental wait mode: If a wait command is followed by a `?`, the macro will loop back to the beginning when it reaches the end and repeat indefinitely, both the savestates and the inputs. Stop by pressing the playback key again.<br><br>After each iteration, the value of `n` increases by one, and the value is displayed on screen. This is a more efficient way of finding the optimal wait period for a setup. There can be no more than one incremental wait in a script. If incremental wait is used, standard loop mode is disabled.||
 ||*`+`*||Select player 1.||
 ||*`-`*||Select the next player.||
 ||*`<`*||Open a bracketed section and switch control to player 1.||
@@ -78,9 +79,9 @@ In the following commands, `n` represents a number and `k` represents a key (dir
 ||*`$n`*||Save the current state to slot n.<br>This can save checkpoints in a long sequence of commands.||
 ||*`&n`*||Load savestate slot n. This is useful to put in the first frame.||
 ||*`()n`*||Repeat the commands enclosed in the parentheses n times. Loops can be nested.||
-||*`# text`*||A comment. The rest of the line after the symbol is ignored by the script.<br>Comments that explain what is supposed to happen are recommended.||
-||*`###`*||If any comment has three consecutive # symbols, the macro will loop back to the beginning when it reaches the end and repeat indefinitely,<br>both the savestates and the inputs. Stop playback by pressing the start key again.<br><br>This can be useful for reviewing a sequence and, if the emulator supports lua+user input, for practicing against a scripted attack from the other player.||
-||*`!`*||End the macro. Any content after the end is ignored by the script, and can be used as comments.<br>Don't forget to advance at least one frame after the last input and before the end.||
+||*`#text`*||A comment. The rest of the line after the symbol is ignored by the parser.<br>Comments should explain the setup and goal of the macro.||
+||*`!`*||End the macro. Any content after the end is ignored by the parser, and can be used as comments.<br>Don't forget to advance at least one frame after the last input and before the end.||
+||*`???`*||If a script has three consecutive `?` symbols in an uncommented area, !MacroLua converts it to the expanded one-line-per-frame format. The conversion occurs instead of playback and is activated by the playback key. The result is saved as a text file. This feature can help in analyzing and debugging scripts.||
 
 Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a `W`) and numerical key presses.
 
@@ -129,8 +130,8 @@ The _macro-options.lua_ file contains the user's settings. This file can be edit
 ||`path`||This is the path where the script file is found and where recordings will be placed. The path may be either relative to macro.lua or absolute. Use either double forward slashes (`.\\path\\`) or single backslashes (`./path/`).||
 ||`playkey`||Press to start playing the specified script or to cancel an already playing script.||
 ||`recordkey`||Press to start recording input to a new script and to finish a recording in progress.||
-||`togglepausekey`||When a script finishes, the game can be paused automatically. Press this to turn autopause on or off.||
-||`inputstreamkey`||Press to convert the playback file to the expanded one-line-per-frame format. The result will be saved as a text file.<br>This feature can help in analyzing scripts. !MacroLua cannot currently parse files in this format.||
+||`togglepausekey`||When a script finishes, the game can be paused automatically. Press this to turn autopause on or off. There is a pause between each repetition in standard loop mode or incremental wait mode.||
+||`toggleloopkey`||If loop mode is active, the macro will loop back to the beginning when it reaches the end and repeat indefinitely, both the savestates and the inputs. Stop by pressing the playback key again.<br><br>This is useful if you want to make successive changes to a script without having to enter the play command each time. If the emulator supports lua+user input, this can also be used for practicing against a scripted attack from the other player.<br><br>If incremental wait mode is active, this key instead cycles between increasing, decreasing, or preserving the delay.||
 ||||After recording player input, the results are written to file. The following three options affect the style of the output:||
 ||`longwait`||Idle frames are collapsed into `Wn` phrases as a shorthand. This option specifies the minimum number of idle frames to trigger this. Set it to 0 to never use `Wn` phrases.||
 ||`longpress`||When an input is active for many consecutive frames, it is abbreviated as a `_k` at the beginning and a corresponding `^k` at the end instead of writing `k` every frame. This option specifies the minimum number of held frames to trigger this. Set it to 0 to never use `_k ^k` phrases.||
@@ -141,6 +142,14 @@ If the emulator doesn't use Lua hotkeys, you must define hotkeys manually. They 
 *Key names are case sensitive.*
 
 `shift, control, alt, capslock, numlock, scrolllock, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, backspace, tab, enter, pause, escape, space, pageup, pagedown, end, home, insert, delete, left, up, right, down, numpad0, numpad1, numpad2, numpad3, numpad4, numpad5, numpad6, numpad7, numpad8, numpad9, numpad*, numpad+, numpad-, numpad., numpad/, tilde, plus, minus, leftbracket, rightbracket, semicolon, quote, comma, period, slash, backslash`
+
+----
+= Special playback modes =
+Here is a review of !MacroLua's special modes:
+|| *mode* || *activated by* || *function* ||
+||text dump mode||`???` written in the script||Output the script to an expanded frame-by-frame form that may be easier to read.<br>(No playback.)||
+||incremental wait mode||`Wn?` written in the script||Loop and automatically adjust the wait period after each iteration.<br>(Macro file is not reread between loops.)||
+||standard loop mode||press the toggle loop key||Loop and automatically reread the macro file after each iteration.||
 
 ----
 = How to mute the background music in arcade games =
