@@ -43,6 +43,7 @@ h6 { margin: 0 ; text-align: right ; }
 <li><a href="#write">How to read and write macros</a></li>
 <li><a href="#modules">Control modules</a></li>
 <li><a href="#settings" />Configuration options</li>
+<li><a href="#special" />Special playback modes</li>
 <li><a href="#mutebgm">How to mute the background music in arcade games</a></li>
 <li><a href="#emus">Lua feature availability in each emulator</a></li>
 </ul>
@@ -128,6 +129,10 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>Wn</code></th>
 <td>Advance (wait) <code>n</code> frames.</td></tr>
 
+<tr><th><code>Wn?</code></th>
+<td>Incremental wait mode: If a wait command is followed by a <code>?</code>, the macro will loop back to the beginning when it reaches the end and repeat indefinitely, both the savestates and the inputs. Stop by pressing the playback key again.
+<br /><br />After each iteration, the value of <code>n</code> increases by one, and the value is displayed on screen. This is a more efficient way of finding the optimal wait period for a setup. There can be no more than one incremental wait in a script. If incremental wait is used, <a href="#settings">standard loop mode</a> is disabled.</td></tr>
+
 <tr><th><code>+</code></th>
 <td>Select player 1.</td></tr>
 <tr><th><code>-</code></th>
@@ -167,15 +172,14 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>()n</code></th>
 <td>Repeat the commands enclosed in the parentheses <code>n</code> times. Loops can be nested.</td></tr>
 
-<tr><th><code># text</code></th>
-<td>A comment. The rest of the line after the symbol is ignored by the script.<br />Comments that explain what is supposed to happen are recommended.</td></tr>
-
-<tr><th><code>###</code></th>
-<td>If any comment has three consecutive <code>#</code> symbols, the macro will loop back to the beginning when it reaches the end and repeat indefinitely, both the savestates and the inputs. Stop playback by pressing the start key again.
-<br /><br />This can be useful for reviewing a sequence and, if the emulator supports <a href="#emus">lua+user</a> input, for practicing against a scripted attack from the other player.</td></tr>
+<tr><th><code>#text</code></th>
+<td>A comment. The rest of the line after the symbol is ignored by the parser.<br />Comments should explain the setup and goal of the macro.</td></tr>
 
 <tr><th><code>!</code></th>
-<td>End the macro. Any content after the end is ignored by the script, and can be used as comments.<br />Don't forget to advance at least one frame after the last input and before the end.</td></tr>
+<td>End the macro. Any content after the end is ignored by the parser, and can be used as comments.<br />Don't forget to advance at least one frame after the last input and before the end.</td></tr>
+
+<tr><th><code>???</code></th>
+<td>If a script has three consecutive <code>?</code> symbols in an uncommented area, MacroLua converts it to the expanded one-line-per-frame format. The conversion occurs instead of playback and is activated by the playback key. The result is saved as a text file. This feature can help in analyzing and debugging scripts.</td></tr>
 </table>
 
 <p>Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a <code>W</code>) and numerical key presses.</p>
@@ -198,32 +202,54 @@ h6 { margin: 0 ; text-align: right ; }
 <table>
 <tr><td colspan="2" align="center">The file, path and key options must be enclosed in quotes.
 <br />The hotkey options are ignored if the emulator supports Lua hotkeys.</td></tr>
+
 <tr><th><code>playbackfile</code></th>
 <td>This is the filename of the script to be played.</td></tr>
+
 <tr><th><code>path</code></th>
 <td>This is the path where the script file is found and where recordings will be placed. The path may be either relative to <i>macro.lua</i> or absolute. Use either double forward slashes (<code>.\\path\\</code>) or single backslashes (<code>./path/</code>).</td></tr>
+
 <tr><th><code>playkey</code></th>
 <td>Press to start playing the specified script or to cancel an already playing script.</td></tr>
+
 <tr><th><code>recordkey</code></th>
 <td>Press to start recording input to a new script and to finish a recording in progress.</td></tr>
+
 <tr><th><code>togglepausekey</code></th>
-<td>When a script finishes, the game can be paused automatically. Press this to turn autopause on or off.</td></tr>
-<tr><th><code>inputstreamkey</code></th>
-<td>Press to convert the playback file to the expanded one-line-per-frame format. The result will be saved as a text file.
-<br />This feature can help in analyzing scripts. MacroLua cannot currently parse files in this format.</td></tr>
+<td>When a macro finishes, the game can be paused automatically. Press this to turn autopause on or off. There is a pause between each repetition in standard loop mode or incremental wait mode.</td></tr>
+
+<tr><th><code>toggleloopkey</code></th>
+<td>If loop mode is active, the macro will loop back to the beginning when it reaches the end and repeat indefinitely, both the savestates and the inputs. Stop by pressing the playback key again.
+<br /><br />This is useful if you want to make successive changes to a script without having to enter the play command each time. If the emulator supports <a href="#emus">lua+user</a> input, this can also be used for practicing against a scripted attack from the other player.
+<br /><br />If <a href="#write">incremental wait mode</a> is active, this key instead cycles between increasing, decreasing, or preserving the delay.</td></tr>
+
 <tr><td colspan="2" align="center">After recording player input, the results are written to file. The following three options affect the style of the output:</td></tr>
+
 <tr><th><code>longwait</code></th>
 <td>Idle frames are collapsed into <code>Wn</code> phrases as a shorthand. This option specifies the minimum number of idle frames to trigger this. Set it to <code>0</code> to never use <code>Wn</code> phrases.</td></tr>
+
 <tr><th><code>longpress</code></th>
 <td>When an input is active for many consecutive frames, it is abbreviated as a <code>_k</code> at the beginning and a corresponding <code>^k</code> at the end instead of writing <code>k</code> every frame. This option specifies the minimum number of held frames to trigger this. Set it to <code>0</code> to never use <code>_k ^k</code> phrases.</td></tr>
+
 <tr><th><code>longline</code></th>
 <td>Each player's input can be broken up into multiple lines. This option specifies the minimum number of characters to trigger a linebreak. Set it to <code>0</code> to not break up lines.</td></tr>
+
 <tr><th><code>framemame</code></th>
 <td>Set to <code>true</code> only if running a script that was made for frameMAME, so that the parser can ignore the audio commands.<br />Otherwise leave as <code>false</code>. This only applies to FBA-rr and MAME-rr.</td></tr>
 </table>
 
 <p>If the emulator doesn't use Lua hotkeys, you must define hotkeys manually. They must be selected from the following list.<br /><b>Key names are case sensitive.</b></p>
 <p><code> shift, control, alt, capslock, numlock, scrolllock, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, backspace, tab, enter, pause, escape, space, pageup, pagedown, end, home, insert, delete, left, up, right, down, numpad0, numpad1, numpad2, numpad3, numpad4, numpad5, numpad6, numpad7, numpad8, numpad9, numpad*, numpad+, numpad-, numpad., numpad/, tilde, plus, minus, leftbracket, rightbracket, semicolon, quote, comma, period, slash, backslash</code></p>
+<hr />
+
+<h2><a name="special" />Special playback modes</h2>
+<p>Here is a review of MacroLua's special modes:</p>
+<table>
+<tr><th>mode</th><th>activated by</th><th>function</th></tr>
+<tr><td>text dump mode</td><td><code>???</code> written in the script</td><td>Output the script to an expanded frame-by-frame form that may be easier to read.<br />(No playback.)</td></tr>
+<tr><td>incremental wait mode</td><td><code>Wn?</code> written in the script</td><td>Loop and automatically adjust the wait period after each iteration.<br />(Macro file is not reread between loops.)</td></tr>
+<tr><td>standard loop mode</td><td>press the toggle loop key</td><td>Loop and automatically reread the macro file after each iteration.</td></tr>
+</table>
 <hr />
 
 <h2><a name="mutebgm" />How to mute the background music in arcade games</h2>
@@ -284,6 +310,6 @@ h6 { margin: 0 ; text-align: right ; }
 <td>MacroLua can name recordings and reset the control scheme based on the loaded game if <code>emu.registerstart()</code> and a function that returns the name of the game are present.</td></tr>
 </table>
 
-<h6>9/10/2010</h6>
+<h6>9/12/2010</h6>
 </body>
 </html>
