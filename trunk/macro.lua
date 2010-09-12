@@ -11,9 +11,9 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "1.09, 9/10/2010"
-print("MacroLua v"..version)
-if fba and not emu.registerstart then error("MacroLua requires a newer version of FBA-rr.", 0) end
+local version = "1.10, 9/12/2010"
+print("MacroLua v" .. version)
+if fba and not emu.registerstart then error("MacroLua v" .. version .. "requires a newer version of FBA-rr.", 0) end
 
 dofile("macro-options.lua", "r")
 dofile("macro-modules.lua", "r")
@@ -49,7 +49,7 @@ if input.registerhotkey then
 	print("* Press Lua hotkey 1 for playback.")
 	print("* Press Lua hotkey 2 for recording.")
 	print("* Press Lua hotkey 3 to toggle pause after playback.")
-	print("* Press Lua hotkey 4 to convert to one line per frame format.")
+	print("* Press Lua hotkey 4 to toggle loop mode or adjust wait incrementation.")
 	print("* Press Lua hotkey 5 to toggle input display.")
 	if fba or mame then
 		toggleinputdisplay()
@@ -62,7 +62,7 @@ else
 		{playkey,        "for playback."},
 		{recordkey,      "for recording."},
 		{togglepausekey, "to toggle pause after playback."},
-		{inputstreamkey, "to convert to one line per frame format."},
+		{toggleloopkey,  "to toggle loop mode or adjust wait incrementation."},
 	}) do
 		if type(key[1]) and key[1]:len() > 0 then
 			print("* Press '" .. key[1] .. "' " .. key[2])
@@ -174,7 +174,8 @@ for p = 1,nplayers do hold[p],press[p] = {},{} end
 ----------------------------------------------------------------------------------------------------
 --[[ Set up the playback variables and functions. ]]--
 
-local line,frame,nextkey,inputstream,macrosize,inbrackets,bracket,player,stateop,stateslot,op,slot,tempframe,junk,loopmode,keytable
+local line,frame,nextkey,inputstream,macrosize,inbrackets,bracket,player,stateop,stateslot,op,slot,tempframe,junk,keytable
+local wait,dumpmode,loopmode = {}
 
 local statekeys = {["$"] = "save", ["&"] = "load"}
 
@@ -308,7 +309,7 @@ end
 ----------------------------------------------------------------------------------------------------
 --[[ Read, interpret, and perform cleanup on the playback macro. ]]--
 
-local function parse(macro)
+local function preparse(macro)
 	local file = path:gsub("\\", "/") .. macro
 	if not io.open(file, "r") then
 		print("Warning: unable to open '" .. file .. "'")
@@ -317,22 +318,36 @@ local function parse(macro)
 	local file = io.input(file)
 	local m = "\n" .. file:read("*a") .. "\n" --Open and read the file.
 	file:close() --Close the file.
-	if framemame and fba or mame then
-		m = m:gsub("[aA][cCsS] ?%d+", "") --Remove frameMAME audio commands.
-		m = m:gsub("[aA][rR] ?%d+ %d+", "") --Remove frameMAME audio commands.
-		m = m:gsub("[aA][mM!]", "") --Remove frameMAME audio commands.
+	if framemame and (fba or mame) then --Remove frameMAME audio commands.
+		m = m:gsub("[aA][cCsS] ?%d+", "")
+		m = m:gsub("[aA][rR] ?%d+ %d+", "")
+		m = m:gsub("[aA][mM!]", "")
 	end
 	m = m:gsub("([\n\r][^#]-)!.*", "%1") --Remove everything after the first uncommented "!".
 	m = m:sub(2) --Remove initial linebreak that was inserted
-	loopmode = m:find("###")
 	m = m:gsub("#.-[\n\r]", "\n") --Remove lines commented with "#".
-	m = m:gsub("[wW] ?(%d+)", function(n) return string.rep(".",n) end) --Expand waits into dots.
+	dumpmode = m:find("%?%?%?") --Determine whether to dump to text file.
+	m = m:gsub("%?%?%?", "", 1) --Remove the first "???".
 	while m:find("%b() ?%d+") do --Recursively..
 		m = m:gsub("(%b()) ?(%d+)", function(s, n) --..expand ()n loops..
 			s = s:sub(2, -2) .. "," --..and remove the parentheses.
 			return s:rep(n)
 		end)
 	end
+	local first, last = m:find("[wW] ?%d+ ?%?") --Detect if incremental wait is present
+	if first and last then
+		wait.before = m:sub(1, first-1)
+		wait.duration = m:sub(first, last):gsub("%D", "")
+		wait.after = m:sub(last+1)
+		wait.increment, wait.change = 1, " (increasing)"
+		m = wait.before .. "W" .. wait.duration .. "," .. wait.after
+	end
+	return m
+end
+
+local function parse(macro)
+	local m = (wait.duration and wait.before .. "W" .. wait.duration .. "," .. wait.after) or preparse(macro)
+	m = m:gsub("[wW] ?(%d+)", function(n) return string.rep(".", n) end) --Expand waits into dots.
 
 	line,frame,macrosize,player,junk = 1,0,nil,1,"" --Initialize parameters.
 	inputstream,stateop,stateslot = {},{},{}
@@ -379,6 +394,9 @@ end
 
 local recframe,recinputstream
 local waitstring,longstring = "",""
+longwait = longwait or 4
+longpress = longpress or 10
+longline = longline or 60
 if longwait > 0 then for i=1,longwait do waitstring = waitstring .. "%." end end
 if longline > 0 then for i=1,longline do longstring = longstring .. "[^\n]" end end
 
@@ -554,20 +572,53 @@ local function dostate(f)
 	end
 end
 
+local function dumpinputstream()
+	if not dumpmode then return end
+	local dump = ""
+	for p=1,nplayers do --header row
+		dump = dump .. "|"
+		for _,v in ipairs(module) do
+			dump = dump .. v[1]
+		end
+	end
+	dump = dump .. "|\n"
+	for f=1,macrosize do --frame rows
+		for p=1,nplayers do
+			dump = dump .. "|"
+			for _,v in ipairs(module) do
+				if inputstream[f] and inputstream[f][p] and string.find(inputstream[f][p], v[1]) then
+					dump = dump .. v[1]
+				else
+					dump = dump .. "."
+				end
+			end
+		end
+		dump = dump .. "|\n"
+	end
+	local filename = playbackfile:gsub("%....$", "")
+	filename = filename .. "-inputstream.txt"
+	local file = io.output(path:gsub("\\", "/") .. filename)
+	file:write(dump) --Write to file.
+	file:close() --Close the file.
+	print("Converted " .. playbackfile .. " to " .. filename .. " (" .. macrosize .. " frames)") print()
+	return true
+end
+
 local function playcontrol(silent)
 	if not playing then
-		if not parse(playbackfile) then return end
-		dostate(frame)
-		if not warning("Macro is zero frames long.", macrosize == 0) then
-			if not silent then
-				print("Now playing " .. playbackfile .. " (" .. macrosize .. " frames)" .. (loopmode and " in loop mode" or ""))
-			end
-			playing = true
-			framediff = emu.framecount()
+		if not parse(playbackfile) or warning("Macro is zero frames long.", macrosize == 0) or dumpinputstream(dumpmode) then
+			return
 		end
+		if not silent then
+			print("Now playing " .. playbackfile .. " (" .. macrosize .. " frames)" .. (loopmode and " in loop mode" or wait.duration and " in incremental wait mode" or ""))
+		end
+		dostate(frame)
+		playing = true
+		framediff = emu.framecount()
 	else 
 		playing = false
 		inputstream = nil
+		wait = {}
 		print("Canceled playback on frame " .. frame) print()
 	end
 end
@@ -584,51 +635,29 @@ local function reccontrol()
 	end
 end
 
-local function dumpinputstream()
-	if not playing then
-		if not parse(playbackfile) then return end
-		if not warning("Macro is zero frames long.", macrosize == 0) then
-			local dump = ""
-			for p=1,nplayers do --header row
-				dump = dump .. "|"
-				for _,v in ipairs(module) do
-					dump = dump .. v[1]
-				end
-			end
-			dump = dump .. "|\n"
-			for f=1,macrosize do --frame rows
-				for p=1,nplayers do
-					dump = dump .. "|"
-					for _,v in ipairs(module) do
-						if inputstream[f] and inputstream[f][p] and string.find(inputstream[f][p], v[1]) then
-							dump = dump .. v[1]
-						else
-							dump = dump .. "."
-						end
-					end
-				end
-				dump = dump .. "|\n"
-			end
-			local filename = playbackfile:gsub("%....$", "")
-			filename = filename .. "-inputstream.txt"
-			local file = io.output(path:gsub("\\", "/") .. filename)
-			file:write(dump) --Write to file.
-			file:close() --Close the file.
-			print("Converted " .. playbackfile .. " to " .. filename .. " (" .. macrosize .. " frames)") print()
-		end
-	end
-end
-
 emu.registerexit(function() --Attempt to save if the script exits while recording
 	if recording then recording = false finalize(recinputstream) end
 end)
-
-local oldplaykey,oldrecordkey,oldpausekey,olddumpkey
 
 local function togglepause()
 	pauseafterplay = not pauseafterplay
 	print("Pause after playback mode: " .. (pauseafterplay and "on" or "off"))
 end
+
+local function toggleloop()
+	if wait.increment == 1 then
+		wait.increment, wait.change = -1, " (decreasing)"
+	elseif wait.increment == -1 then
+		wait.increment, wait.change = 0, " (constant)"
+	elseif wait.increment == 0 then
+		wait.increment, wait.change = 1, " (increasing)"
+	else
+		loopmode = not loopmode
+		print("Loop mode: " .. (loopmode and "on" or "off"))
+	end
+end
+
+local oldplaykey,oldrecordkey,oldpausekey,oldloopkey
 
 if input.registerhotkey then --use registerhotkey if available
 	input.registerhotkey(1, function()
@@ -644,7 +673,7 @@ if input.registerhotkey then --use registerhotkey if available
 	end)
 
 	input.registerhotkey(4, function()
-		dumpinputstream()
+		toggleloop()
 	end)
 elseif guiregisterhax then --otherwise try to exploit the constantly running gui.register (fceux and pcsx)
 	gui.register(function()
@@ -666,11 +695,11 @@ elseif guiregisterhax then --otherwise try to exploit the constantly running gui
 		end
 		oldpausekey = nowpausekey
 
-		local nowdumpkey = input.get()[inputstreamkey]
-		if nowdumpkey and not olddumpkey then
-			dumpinputstream()
+		local nowloopkey = input.get()[toggleloopkey]
+		if nowloopkey and not oldloopkey then
+			toggleloop()
 		end
-		olddumpkey = nowdumpkey
+		oldloopkey = nowloopkey
 	end)
 end
 
@@ -697,11 +726,11 @@ emu.registerbefore(function()
 		end
 		oldpausekey = nowpausekey
 
-		local nowdumpkey = input.get()[dumpkey]
-		if nowdumpkey and not olddumpkey then
-			dumpinputstream()
+		local nowloopkey = input.get()[toggleloopkey]
+		if nowloopkey and not oldloopkey then
+			toggleloop()
 		end
-		olddumpkey = nowdumpkey
+		oldloopkey = nowloopkey
 	end
 	
 	--framediff check is necessary for emus where registerbefore runs multiple times per frame
@@ -732,11 +761,15 @@ emu.registerbefore(function()
 		if frame > macrosize then
 			playing = false
 			inputstream = nil
-			if loopmode then
+			pausenow = pauseafterplay
+			if wait.duration then
+				wait.duration = wait.duration + wait.increment
+				if wait.duration < 0 then wait.duration = 0 end
+				playcontrol(true)
+			elseif loopmode then
 				playcontrol(true)
 			else
 				print("Macro finished playing.") print()
-				pausenow = pauseafterplay
 			end
 		end
 	end
@@ -769,10 +802,16 @@ emu.registerafter(function() --recording is done after the frame, not before, to
 		end
 	end
 
-	local pmesg = playing and ("macro playing: " .. frame .. "/" .. macrosize) or ""
-	if loopmode then pmesg = pmesg .. " in loop mode" end
-	local rmesg = recording and "macro recording: " .. recframe or ""
-	if playing or recording then emu.message(pmesg .. (playing and recording and "   " or "") .. rmesg) end
+	if playing or recording then
+		local pmesg = playing and ("macro playing: " .. frame .. "/" .. macrosize) or ""
+		if wait.duration then
+			pmesg = pmesg .. "; incremental wait: " .. wait.duration .. wait.change
+		elseif loopmode then
+			pmesg = pmesg .. " in loop mode"
+		end
+		local rmesg = recording and "macro recording: " .. recframe or ""
+		emu.message(pmesg .. (playing and recording and "   " or "") .. rmesg)
+	end
 end)
 
 ----------------------------------------------------------------------------------------------------

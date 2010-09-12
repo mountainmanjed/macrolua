@@ -24,8 +24,8 @@ recordkey = "numpad/"
 -- press to turn on or off whether it should pause after a macro completes
 togglepausekey = "quote"
 
--- press to convert the playback file to one-line-per-frame format
-inputstreamkey = ""
+-- press to turn loop mode on or off, or to switch between increasing, decreasing or no wait incrementation
+toggleloopkey = "numpad+"
 
 --------------------------------------------------------------------------------
 -- Recording file output settings
