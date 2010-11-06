@@ -66,11 +66,10 @@ h6 { margin: 0 ; text-align: right ; }
 <h2><a name="mame-rr" />A word on MAME-rr</h2>
 <p>The current version of <a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a> (0139-test2) has some oddities with the savestate system and the first few scripted frames get merged together. To avoid problems:</p>
 <ul>
-<li>The savestate you want to start from should be saved while the script is loaded and not playing.</li>
 <li>Start playing scripts with the emulator in an unpaused state. Starting from pause will be off by one frame.</li>
 <li>Leave at least a few blank frames at the start.</li>
+<li>If scripting a save, leave a few blank frames after the last input.</li>
 <li>Don't try to load states if using recording mode. Recording is not bulletproof.</li>
-<li>The .luasav files that accompany savestates are necessary for sync, so leave them together.</li>
 </ul>
 
 <hr />
@@ -269,21 +268,24 @@ h6 { margin: 0 ; text-align: right ; }
 <tbody align="center">
 <tr><th>emulator</th><th>version tested</th><th><code>emu</code> alias</th><th>hotkey while<br />paused</th><th>lua+user<br />input</th><th>bulletproof<br />savestates</th><th>adapt to<br />ROMs</th></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a></td><td>0139-test2</td><td class="yes"><code>mame</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a></td><td class="yes">0139-test2</td><td class="yes"><code>mame</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td>0.0.5a</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td class="yes">0.0.5a</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td>0.1.3b</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td class="yes">0.1.3b</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td>11b</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td class="yes">11b</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td>1.43 svn146<br />1.51 svn147<a class="foot" href="#1">[1]</a></td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu" rowspan="3"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td class="yes">1.43 svn146</td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="no">1.51 svn147<a class="foot" href="#1">[1]</a></td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="no">1.52 r185<a class="foot" href="#2">[2]</a></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td>svn217</td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu" rowspan="2"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td class="yes"><a href="http://code.google.com/p/vba-rerecording/downloads/detail?name=vba-rerecording-svn225-win32.zip">svn225</a></td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="no">23.2<a class="foot" href="#3">[3]</a></td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td>2.1.4a</td><td class="yes"><code>FCEU</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td class="yes">2.1.4a</td><td class="yes"><code>FCEU</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td>SVN128</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td class="no">SVN128<a class="foot" href="#3">[4]</a></td></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
 
 <tr><th><a href="http://desmume.org/">DeSmuMe</a></th><td>0.9.6</td><td colspan="5">not yet tested</td></tr>
 <tr><th><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></th><td>1.1</td><td colspan="5">use <a href="http://code.google.com/p/macrolua/wiki/TranScripterDocumentation">TranScripter</a></td></tr>
@@ -292,7 +294,10 @@ h6 { margin: 0 ; text-align: right ; }
 </tbody></table>
 
 <div id="foot"><ol>
-<li><a name="1"></a>snes9x 1.51 only accepts Lua input from within a <code>while true do</code> loop, so playback won't work.</li>
+<li><a name="1"></a>snes9x 1.51 svn147 only accepts Lua input from within a <code>while true do</code> loop, so playback won't work.</li>
+<li><a name="2"></a>snes9x 1.52 r185 lacks an <code>emu</code> alias, <code>savestate.save</code>, <code>savestate.load</code> and the entire <code>joypad</code> library.</li>
+<li><a name="3"></a>VBA versions after svn225 only accept Lua input from within a <code>while true do</code> loop and won't work.</li>
+<li><a name="4"></a>PCEjin may only need an <code>emu</code> alias to work.</li>
 </ol></div>
 
 <table>
@@ -307,9 +312,9 @@ h6 { margin: 0 ; text-align: right ; }
 <td>The user may load savestates while playing or recording without losing progress if <code>savestate.registersave() and savestate.registerload()</code> are available. MAME-rr has other problems with savestates.
 <br /><br />This feature has not been well tested.</td></tr>
 <tr><th>adapt to ROMs</th>
-<td>MacroLua can name recordings and reset the control scheme based on the loaded game if <code>emu.registerstart()</code> and a function that returns the name of the game are present.</td></tr>
+<td>MacroLua can name recordings and reset the control scheme based on the loaded game if <code>emu.registerstart()</code> and <code>emu.romname()</code> are available.</td></tr>
 </table>
 
-<h6>9/12/2010</h6>
+<h6>11/5/2010</h6>
 </body>
 </html>

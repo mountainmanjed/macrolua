@@ -11,11 +11,17 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local version = "1.10, 9/12/2010"
-print("MacroLua v" .. version)
-if fba and not emu.registerstart then error("MacroLua v" .. version .. "requires a newer version of FBA-rr.", 0) end
+local macrolua = "1.11, 11/5/2010"
+print("MacroLua v" .. macrolua)
+if fba and not emu.registerstart then
+	error("This script requires a newer version of FBA-rr.", 0)
+end
 
-dofile("macro-options.lua", "r")
+--initialize the globals
+for _,var in ipairs({playbackfile,path,playkey,recordkey,togglepausekey,toggleloopkey,longwait,longpress,longline,framemame}) do
+	var = nil
+end
+dofile("macro-options.lua", "r") --load the globals
 dofile("macro-modules.lua", "r")
 
 emu = emu or gens --gens doesn't have the "emu" table of functions
@@ -26,37 +32,11 @@ end
 
 local guiregisterhax = FCEU or pcsx --exploit that allows checking for hotkeys while paused
 
-local inp_display_script = "input-display.lua"
-local display_input = true
-
-local function toggleinputdisplay(report)
-	if not io.open(inp_display_script, "r") then
-		print("Warning: unable to open '" .. inp_display_script .. "'")
-		return
-	end
-	if display_input then
-		dofile(inp_display_script, "r")
-	else
-		gui.clearuncommitted()
-		gui.register(function()
-		end)
-	end
-	if report then print("Input display " .. (display_input and "on." or "off.")) end
-	display_input = not display_input
-end
-
 if input.registerhotkey then
 	print("* Press Lua hotkey 1 for playback.")
 	print("* Press Lua hotkey 2 for recording.")
 	print("* Press Lua hotkey 3 to toggle pause after playback.")
 	print("* Press Lua hotkey 4 to toggle loop mode or adjust wait incrementation.")
-	print("* Press Lua hotkey 5 to toggle input display.")
-	if fba or mame then
-		toggleinputdisplay()
-		input.registerhotkey(5, function()
-			toggleinputdisplay(true)
-		end)
-	end
 else
 	for _, key in ipairs({
 		{playkey,        "for playback."},
@@ -64,47 +44,65 @@ else
 		{togglepausekey, "to toggle pause after playback."},
 		{toggleloopkey,  "to toggle loop mode or adjust wait incrementation."},
 	}) do
-		if type(key[1]) and key[1]:len() > 0 then
+		if key[1] and type(key[1]) == "string" and not key[1]:find(" ") and key[1]:len() > 0 then
 			print("* Press '" .. key[1] .. "' " .. key[2])
 		else
 			print("* No hotkey defined " .. key[2])
 		end
 	end
 end
-print()
 
 local module,nplayers,useF_B
 
-local function checkF_B() --determine if it's OK to convert F/B to L/R
+local function check_module() --determine if it's OK to convert F/B to L/R
 	local using = {}
-	for _,v in ipairs(module) do using[string.upper(v[1])] = true end
+	for _,v in ipairs(module) do
+		local key = string.upper(v[1])
+		using[key] = true
+		for _,reserved in ipairs({".","W","_","^","*","+","-","<","/",">","(",")","$","&","#","!"}) do
+			if key == reserved then
+				print("Warning: module uses a reserved character '" .. v[1] .. "' for " .. v[2])
+			end
+		end
+	end
 	useF_B = using.L and using.R and not (using.F or using.B)
 end
 
 local function add(symbol, key) --add keys to the generic module
-	table.insert(module,{symbol, key})
-	print(symbol.."\t"..key)
+	table.insert(module, {symbol, key})
+	print(symbol .. "\t" .. key)
 end
 
 local function generic() --try to detect controls and make a generic module
 	local c = joypad.get()
 	local stick,nbuttons,label = 0,0
 	nplayers = 1
-	if c["P1 Up"] ~= nil and c["P1 Down"] ~= nil and c["P1 Left"] ~= nil and c["P1 Right"] ~= nil then stick = 1 end
-	for b=10,1,-1 do
-		for k,v in ipairs({"P1 Button "..b, "P1 Fire "..b}) do
+	if c["P1 Up"] ~= nil and c["P1 Down"] ~= nil and c["P1 Left"] ~= nil and c["P1 Right"] ~= nil then
+		stick = 1
+	end
+	for b = 10,1,-1 do
+		for _,v in ipairs({"P1 Button " .. b, "P1 Fire " .. b}) do
 			if c[v] ~= nil then
 				nbuttons = b
 				label = v:gsub("[(P1)(%d+)]", "")
 				break
 			end
 		end
-		if nbuttons > 0 then break end
+		if nbuttons > 0 then
+			break
+		end
 	end
-	for n=4,1,-1 do if c["P"..n.." Button 1"] ~= nil or c["P"..n.." Fire 1"] ~= nil then nplayers = n break end end
-	if stick+nbuttons == 0 then return end --found neither stick nor buttons
+	for n = 4,1,-1 do
+		if c["P"..n.." Button 1"] ~= nil or c["P"..n.." Fire 1"] ~= nil then
+			nplayers = n
+			break
+		end
+	end
+	if stick+nbuttons == 0 then --found neither stick nor buttons
+		return
+	end
 	
-	print("Generic macro module: "..nplayers.."-player, "..nbuttons.."-button"..(stick > 0 and "" or ", no joystick"))
+	print("Using generic module: "..nplayers.."-player, "..nbuttons.."-button"..(stick > 0 and "" or ", no joystick"))
 	print("Symbol:\tCommand:")
 	module = {}
 	if stick > 0 then
@@ -113,49 +111,53 @@ local function generic() --try to detect controls and make a generic module
 		add("L", "P# Left")
 		add("R", "P# Right")
 	end
-	for b=1,nbuttons do
-		add(b, "P#"..label..b)
+	for b = 1,nbuttons do
+		b = tostring(b)
+		add(b, "P#" .. label .. b)
 	end
-	for k,v in ipairs({"1 Player Start", "P1 Start", "Start 1"}) do
+	for _,v in ipairs({"1 Player Start", "P1 Start", "Start 1"}) do
 		if c[v] ~= nil then
 			add("S", v:gsub("1","#"))
 			break
 		end
 	end
-	for k,v in ipairs({"Coin 1", "P1 Coin"}) do
+	for _,v in ipairs({"Coin 1", "P1 Coin"}) do
 		if c[v] ~= nil then
 			add("C", v:gsub("1","#"))
 			break
 		end
 	end
-	if c["Reset"] then add("~","Reset") end
+	if c["Reset"] then
+		add("~", "Reset")
+	end
 	useF_B = true
+	print()
 end
 
 local function findarcademodule()
-	for k,v in ipairs(arcade) do
-		for j,u in ipairs(v[1]) do
-			if emu.romname() == u or emu.parentname() == u or emu.sourcename() == u then
+	for _,v in ipairs(arcade) do
+		for _,romname in ipairs(v[1]) do
+			if emu.romname() == romname or emu.parentname() == romname or emu.sourcename() == romname then
+				print("Using " .. romname .. " module") print()
 				nplayers = v[2]
 				module = v[3]
-				for i,t in pairs(module) do
-					t[2] = mame and t[3] or t[2]
+				for _,keyname in ipairs(module) do
+					keyname[2] = mame and keyname[3] or keyname[2]
 				end
-				checkF_B()
+				check_module()
 				return
 			end
 		end
 	end
 	generic()
-	if not module then error("No module found for this game in macro-modules.lua.",0) end
 end
 
 local function findmodule()
-	for k,v in ipairs(single) do
+	for _,v in ipairs(single) do
 		if v[1] then
 			nplayers = v[2]
 			module = v[3]
-			checkF_B()
+			check_module()
 			return
 		end
 	end
@@ -163,8 +165,19 @@ local function findmodule()
 end
 
 if fba or mame then
-	emu.registerstart(function() findarcademodule() end)
+	local inp_display_script = "input-display.lua"
+	if not io.open(inp_display_script, "r") then
+		print("Warning: unable to open '" .. inp_display_script .. "'")
+	end
+	emu.registerstart(function()
+		if io.open(inp_display_script, "r") then
+			dofile(inp_display_script, "r")
+		end
+		print()
+		findarcademodule()
+	end)
 else
+	print()
 	findmodule()
 end
 
@@ -191,8 +204,11 @@ end
 
 local function warning(msg, expr)
 	if expr == true then
-		if not macrosize then print("Warning on line " .. line .. ", frame " .. frame .. ":", msg)
-		else print("Warning:", msg) end
+		if not macrosize then
+			print("Warning (line " .. line .. ", frame " .. frame .. "):", msg)
+		else
+			print("Warning:", msg)
+		end
 		return true
 	end
 end
@@ -208,9 +224,13 @@ end
 
 local funckeys = {
 	["."] = function()
-		frame=frame+1
-		if not inbrackets then for p=1,nplayers do updatestream(p, frame) end
-		else updatestream(player, frame)
+		frame = frame+1
+		if not inbrackets then
+			for p = 1,nplayers do
+				updatestream(p, frame)
+			end
+		else
+			updatestream(player, frame)
 		end
 		endframe()
 	end,
@@ -234,7 +254,7 @@ local funckeys = {
 	end,
 	
 	["<"] = function()
-		if warning("tried to open brackets but they were already open", inbrackets) then return end
+		if warning("used '<' but brackets are already open", inbrackets) then return end
 		inbrackets = true
 		player = 1
 		bracket[0] = frame
@@ -249,25 +269,25 @@ local funckeys = {
 	end,
 	
 	[">"] = function()
-		if warning("tried to close brackets but they were not open", not inbrackets) then return end
+		if warning("used '>' but brackets are not open", not inbrackets) then return end
 		bracket[player] = frame
 		local highest = bracket[0]
-		for p=1,nplayers do
+		for p = 1,nplayers do
 			bracket[p] = bracket[p] or bracket[0]
 			if bracket[p] > highest then
 				highest = bracket[p]
 			end
 		end
-		for p=1,nplayers do
+		for p = 1,nplayers do
 			while bracket[p] <= highest do
 				updatestream(p, bracket[p])
 				bracket[p] = bracket[p]+1
 			end
 		end
-		frame=highest
-		bracket={}
-		inbrackets=false
-		player=1
+		frame = highest
+		bracket = {}
+		inbrackets = false
+		player = 1
 		endframe()
 	end,
 }
@@ -275,6 +295,8 @@ local funckeys = {
 local function char(c)
 	for k in pairs(funckeys) do --special keys
 		if c == k then
+			warning("did not follow '_' with a game key", nextkey == hold)
+			warning("did not follow '^' with a game key", nextkey == nil)
 			funckeys[k]()
 			return
 		end
@@ -289,19 +311,26 @@ local function char(c)
 			if not nextkey then --release
 				hold[player][v[1]] = nil
 			else --press or hold
+				warning("'" .. v[1] .. "' is already pressed by player " .. player, press[player][v[1]])
+				warning("'" .. v[1] .. "' is already held by player " .. player, hold[player][v[1]])
 				nextkey[player][v[1]] = true
 			end
 			nextkey = press
 			return
 		end
 	end
-	for _,v in pairs({" ",",","\t"}) do --Remove commas, spaces and tabs.
-		if c == v then return end
+	for _,v in ipairs({" ",",","\t"}) do --Remove commas, spaces and tabs.
+		if c == v then
+			return
+		end
 	end
-	for _,v in pairs({"\n","\r"}) do --Remove linebreaks
-		if c == v then line = line+1 return end
+	for _,v in ipairs({"\n","\r"}) do --Remove linebreaks.
+		if c == v then
+			line = line+1
+			return
+		end
 	end
-	warning("'" .. c .. "' is unrecognized", true) --invalid character
+	warning("'" .. c .. "' is unrecognized", c:len() > 0) --invalid character
 	junk = junk .. c
 	return
 end
@@ -312,7 +341,7 @@ end
 local function preparse(macro)
 	local file = path:gsub("\\", "/") .. macro
 	if not io.open(file, "r") then
-		print("Warning: unable to open '" .. file .. "'")
+		print("Error: unable to open '" .. file .. "'")
 		return
 	end
 	local file = io.input(file)
@@ -328,12 +357,6 @@ local function preparse(macro)
 	m = m:gsub("#.-[\n\r]", "\n") --Remove lines commented with "#".
 	dumpmode = m:find("%?%?%?") --Determine whether to dump to text file.
 	m = m:gsub("%?%?%?", "", 1) --Remove the first "???".
-	while m:find("%b() ?%d+") do --Recursively..
-		m = m:gsub("(%b()) ?(%d+)", function(s, n) --..expand ()n loops..
-			s = s:sub(2, -2) .. "," --..and remove the parentheses.
-			return s:rep(n)
-		end)
-	end
 	local first, last = m:find("[wW] ?%d+ ?%?") --Detect if incremental wait is present
 	if first and last then
 		wait.before = m:sub(1, first-1)
@@ -347,7 +370,14 @@ end
 
 local function parse(macro)
 	local m = (wait.duration and wait.before .. "W" .. wait.duration .. "," .. wait.after) or preparse(macro)
+	if not m then return end
 	m = m:gsub("[wW] ?(%d+)", function(n) return string.rep(".", n) end) --Expand waits into dots.
+	while m:find("%b() ?%d+") do --Recursively..
+		m = m:gsub("(%b()) ?(%d+)", function(s, n) --..expand ()n loops..
+			s = s:sub(2, -2) .. "," --..and remove the parentheses.
+			return s:rep(n)
+		end)
+	end
 
 	line,frame,macrosize,player,junk = 1,0,nil,1,"" --Initialize parameters.
 	inputstream,stateop,stateslot = {},{},{}
@@ -361,13 +391,16 @@ local function parse(macro)
 		char(m:sub(1, 1))
 		m = m:sub(2)
 	end
+	if tempframe then --Clear save/load strings at the end that don't have a frame advance.
+		endframe()
+	end
 	macrosize = frame
 
-	warning("input left unprocessed: " .. junk, junk ~= "") --Report anything left unresolved.
+	warning("input left unprocessed: " .. junk, junk:len() > 0) --Report anything left unresolved.
 
 	if warning("brackets were left open.", inbrackets) then char(">") end --Check if brackets still open.
 
-	for p=1,nplayers do --Check for keys still pressed.
+	for p = 1,nplayers do --Check for keys still pressed.
 		local leftovers = ""
 		for k in pairs(press[p]) do
 			leftovers = leftovers .. k
@@ -377,7 +410,7 @@ local function parse(macro)
 		end
 	end
 
-	for p=1,nplayers do --Check for keys still held.
+	for p = 1,nplayers do --Check for keys still held.
 		local leftovers = ""
 		for k in pairs(hold[p]) do
 			leftovers = leftovers .. k
@@ -393,12 +426,22 @@ end
 --[[ Set up the recording variables and functions. ]]--
 
 local recframe,recinputstream
-local waitstring,longstring = "",""
-longwait = longwait or 4
-longpress = longpress or 10
-longline = longline or 60
-if longwait > 0 then for i=1,longwait do waitstring = waitstring .. "%." end end
-if longline > 0 then for i=1,longline do longstring = longstring .. "[^\n]" end end
+
+if type(longwait) ~= "number" or longwait < 0 then
+	print("Using default longwait: 4")
+	longwait = 4
+end
+if type(longpress) ~= "number" or longpress < 0 then
+	print("Using default longpress: 10")
+	longpress = 10
+end
+if type(longline) ~= "number" or longline < 0 then
+	print("Using default longline: 60")
+	longline = 60
+end
+
+local waitstring = string.rep("%.", longwait)
+local longstring = string.rep("[^\n]", longline)
 
 local function finalize(t)
 	if recframe == 0 then
@@ -407,28 +450,27 @@ local function finalize(t)
 	end
 	
 	--Determine how many players were active.
-	local np = nplayers
-	for p=np,1,-1 do
-		local active = false
-		for f=1,recframe do
-			active = t[f] and t[f][p]
-			if active then break end
+	local activeplayers = 0
+	for p = nplayers,1,-1 do
+		for f = 1,recframe do
+			if t[f] and t[f][p] then
+				activeplayers = p
+				break
+			end
 		end
-		if active then break
-		else np = np-1
-		end
+		if activeplayers > 0 then break end
 	end
-	if np == 0 then
+	if activeplayers == 0 then
 		print("Stopped recording: No input was entered in", recframe, "frames.") print()
 		return
 	end
 	
 	--Substitute _holds and ^releases for long press sequences.
 	if longpress > 0 then
-		for p = 1,np do
+		for p = 1,activeplayers do
 			for _,v in ipairs(module) do
 				local hold,release,pressed,oldpressed = 0,0,false,false
-				for f=1,recframe+1 do
+				for f = 1,recframe+1 do
 					pressed = t[f] and t[f][p] and t[f][p]:find(v[1])
 					if pressed and not oldpressed then hold = f end
 					if not pressed and oldpressed then release = f
@@ -436,7 +478,7 @@ local function finalize(t)
 							t[release] = t[release] or {}
 							t[release][p] = t[release][p] or ""
 							if f == recframe+1 then recframe = f end --add another frame to process the release if necessary
-							for fr=hold,release do t[fr][p] = t[fr][p]:gsub(v[1], "") end --take away the presses
+							for fr = hold,release do t[fr][p] = t[fr][p]:gsub(v[1], "") end --take away the presses
 							t[hold][p] = t[hold][p] .. "_" .. v[1] --add the hold at the beginning
 							t[release][p] = t[release][p] .. "^" .. v[1] --add the release at the end
 						end
@@ -448,11 +490,11 @@ local function finalize(t)
 	end
 	
 	--Compose the text in bracket format.
-	local text = "# " .. os.date() .. "\n\n"
+	local text = "# " .. (emu.romname and emu.romname() .. " " or "") .. os.date() .. "\n\n"
 	local sep = "<"
-	for p=1,np do
+	for p = 1,activeplayers do
 		local str = sep .. " # Player " .. p .. "\n"
-		for f=1,recframe do
+		for f = 1,recframe do
 			str = str .. (t[f] and t[f][p] or "") .. "."
 		end
 		text = text .. str .. "\n\n"
@@ -502,19 +544,19 @@ end
 
 local playing,recording,pauseafterplay,pausenow,framediff = false,false,false,false
 
-local function bulletproof(active, f1, f2, t1, t2) --1=current, 2=loaded
+local function bulletproof(active, f1, f2, t1, t2) --1 = current, 2 = loaded
 	if not active then return false end
 	if f1 == 0 then return true end --loading on 0th frame is always OK
 	if not t2 then
 		print("Error: loaded state has no macro data")
 		return false
 	end
-	for f=1,f2 do
+	for f = 1,f2 do
 		if type(t1[f]) ~= type(t2[f]) then --one has data in a table, the other is empty/nil
 			print("Error: loaded macro does not match current macro on frame " .. f)
 			return false
 		elseif t1[f] and t2[f] then --both are tables with nonblank data
-			for p=1,nplayers do
+			for p = 1,nplayers do
 				if t1[f][p] ~= t2[f][p] then
 					print("Error: loaded macro does not match current macro on frame " .. f)
 					return false
@@ -539,15 +581,23 @@ if savestate.registersave and savestate.registerload then --registersave/registe
 		if mame then
 			framediff = savestate.loadscriptdata(slot)
 			if playing and not framediff then
-				print("Savestate " .. slot .. " has no framecount data. This macro may not play correctly!")
-				print("Resave this savestate with the script running and idle to avoid problems.")
+				--[[if not (wait.duration or loopmode) then
+					print("Savestate " .. slot .. " has no framecount data. This macro may not play correctly!")
+					print("Resave this savestate with the script running and idle to avoid problems.")
+				end]]
 				framediff = emu.framecount()
 			end
 			return
 		end
-		if not playing and not recording then return end
-		if playing and not loopmode then print("Loaded from slot", slot, "while playing frame", frame) end
-		if recording then print("Loaded from slot", slot, "while recording frame", recframe) end
+		if not playing and not recording then
+			return
+		end
+		if playing and not loopmode then
+			print("Loaded from slot", slot, "while playing frame", frame)
+		end
+		if recording then
+			print("Loaded from slot", slot, "while recording frame", recframe)
+		end
 		local tmp = {}
 		tmp.frame,tmp.inputstream,tmp.macrosize,tmp.recframe,tmp.recinputstream = savestate.loadscriptdata(slot)
 		playing = bulletproof(playing,frame,tmp.frame,inputstream,tmp.inputstream)
@@ -575,15 +625,15 @@ end
 local function dumpinputstream()
 	if not dumpmode then return end
 	local dump = ""
-	for p=1,nplayers do --header row
+	for p = 1,nplayers do --header row
 		dump = dump .. "|"
 		for _,v in ipairs(module) do
 			dump = dump .. v[1]
 		end
 	end
 	dump = dump .. "|\n"
-	for f=1,macrosize do --frame rows
-		for p=1,nplayers do
+	for f = 1,macrosize do --frame rows
+		for p = 1,nplayers do
 			dump = dump .. "|"
 			for _,v in ipairs(module) do
 				if inputstream[f] and inputstream[f][p] and string.find(inputstream[f][p], v[1]) then
@@ -618,8 +668,14 @@ local function playcontrol(silent)
 	else 
 		playing = false
 		inputstream = nil
-		wait = {}
-		print("Canceled playback on frame " .. frame) print()
+		if wait.duration then
+			print("Stopped at wait duration = " .. wait.duration) print()
+			wait = {}
+		elseif loopmode then
+			print("Stopped looping playback on frame " .. frame) print()
+		else
+			print("Canceled playback on frame " .. frame) print()
+		end
 	end
 end
 
@@ -738,10 +794,10 @@ emu.registerbefore(function()
 		frame = frame+1
 		dostate(frame)
 		inputstream[frame] = inputstream[frame] or {}
-		for p=1,nplayers do if not inputstream[frame][p] then inputstream[frame][p] = "" end end
+		for p = 1,nplayers do if not inputstream[frame][p] then inputstream[frame][p] = "" end end
 		if fba or mame then --In fba and mame, joypad.set is called once without a player number.
 			keytable = {}
-			for p=1,nplayers do
+			for p = 1,nplayers do
 				for _,v in ipairs(module) do
 					local u = v[2]:gsub("#", p)
 					if p > 1 then u = u:gsub("Player Start", "Players Start") end
@@ -751,7 +807,7 @@ emu.registerbefore(function()
 			if keytable["Reset"] == 1 and emu.softreset then emu.softreset() end
 		else --In other emus, joypad.set is called separately for each player.
 			keytable = {}
-			for p=1,nplayers do
+			for p = 1,nplayers do
 				keytable[p] = joypad.getdown(p) --This allows lua+user input
 				for _,v in ipairs(module) do
 					if inputstream[frame][p]:find(v[1]) then keytable[p][v[2]] = true end
@@ -779,7 +835,7 @@ emu.registerbefore(function()
 		if fba or mame then
 			joypad.set(keytable)
 		else
-			for p=1,nplayers do joypad.set(p, keytable[p]) end
+			for p = 1,nplayers do joypad.set(p, keytable[p]) end
 		end
 	end
 end)
@@ -790,7 +846,7 @@ end)
 emu.registerafter(function() --recording is done after the frame, not before, to catch input from playing macros
 	if recording then
 		recframe = recframe+1
-		for p=1,nplayers do
+		for p = 1,nplayers do
 			for _,v in ipairs(module) do
 				local u = v[2]:gsub("#", p)
 				if p > 1 then u = u:gsub("Player Start", "Players Start") end
