@@ -6,6 +6,40 @@
 ----
 = !MacroLua =
 
+== v1.11, 11/5/2010 ==
+
+=== Changes regarding input display: (FBA/MAME only) ===
+ * Control over input display has been integrated into the new input-display.lua and is now removed from !MacroLua.
+   * It's still toggled with Lua hotkey 5.
+ * input-display.lua is rerun when starting a new game to ensure the display is correct.
+ * It no longer causes a crash if input-display.lua or input-modules.lua cannot be found.
+ * input-display.lua and input-modules.lua are being put back in the !MacroLua archive until FBA-rr and MAME-rr get updated with the new versions.
+
+=== Problems fixed: ===
+ * Numbered buttons were not working while using generic modules. (FBA/MAME only)
+
+=== Enhancements: ===
+ * Added modules for ringdest and megaman/megaman2
+ * The incremental wait can be used in parentheses to multiply the effect, but you still only get one.
+ * When you stop playback in incremental wait mode, the current wait is printed to the console for reference.
+ * Removed the warning when a script loads a state without luasav data in MAME-rr.
+   * Scripts seem to work fine when the data is not there.
+   * Bulletproof playback & recording is still disabled for MAME though.
+ * Savestate operations can be put at the end of the script, without a frame advance, and will work.
+   * But MAME-rr does the save a few frames too early, so put a few blank frames after the last input.
+ * New warnings triggered for:
+   * redundant key press or hold
+   * hold or release symbol followed by invalid game key
+   * current module contains reserved characters
+   * invalid longwait, longpress, or longline values (no longer causes crash)
+   * designated script file cannot be found (no longer causes crash)
+
+=== Documentation: ===
+ * Relaxed MAME-rr warnings.
+ * New emulators tested:
+   * snes9x 1.52 `r185` (doesn't work)
+   * VBA23.2-Win32 (doesn't work; stick with [http://code.google.com/p/vba-rerecording/downloads/detail?name=vba-rerecording-svn225-win32.zip svn225])
+
 == v1.10, 9/12/2010 ==
 
 === Enhancements: ===
