@@ -19,7 +19,7 @@
  * Numbered buttons were not working while using generic modules. (FBA/MAME only)
 
 === Enhancements: ===
- * Added modules for ringdest and megaman/megaman2
+ * Added modules for `ringdest` and `megaman`/`megaman2`
  * The incremental wait can be used in parentheses to multiply the effect, but you still only get one.
  * When you stop playback in incremental wait mode, the current wait is printed to the console for reference.
  * Removed the warning when a script loads a state without luasav data in MAME-rr.
@@ -31,7 +31,7 @@
    * redundant key press or hold
    * hold or release symbol followed by invalid game key
    * current module contains reserved characters
-   * invalid longwait, longpress, or longline values (no longer causes crash)
+   * invalid `longwait`, `longpress`, or `longline` values (no longer causes crash)
    * designated script file cannot be found (no longer causes crash)
 
 === Documentation: ===
@@ -144,6 +144,16 @@ Only one of the three special modes can be active at once. The priority from hig
 
 ----
 = !AutoMacro =
+
+== v1.06, 11/6/2010 ==
+
+=== New feature: ===
+ * Implemented loop mode: toggle with checkbox, hotkey or menuitem.
+
+=== Enhancements: ===
+ * Warning given if keymap symbol is a reserved character or more than a single character.
+ * Number of script/settings warnings is displayed after load.
+ * `framemame` compatibility mode will never be needed and has been removed.
 
 == v1.05, 6/13/2010 ==
 
