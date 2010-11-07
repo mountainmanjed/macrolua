@@ -1,6 +1,6 @@
 local $appname = "AutoMacro"
-local $version = "1.05"
-local $verdate = "6/13/2010"
+local $version = "1.06"
+local $verdate = "11/6/2010"
 ; Written by Dammit
 ; http://macrolua.googlecode.com/
 
@@ -54,11 +54,11 @@ next
 local $configfile = "macro.ini"
 
 ; User can't exceed these maximums
-local $maxnplayers = 10, $maxnkeys = 20
+local $maxnplayers = 10, $maxnkeys = 30
 
 ; Array that determines what gets loaded from the ini
 ; Second column describes what format is expected
-local $settings[11][2] = [ _
+local $settings[10][2] = [ _
 	[      "macrofile", -3], _
 	[   "targetwindow", -3], _
 	[       "startkey", -3], _
@@ -68,8 +68,7 @@ local $settings[11][2] = [ _
 	[          "nkeys", $maxnkeys], _
 	[    "maxwarnings",  0], _
 	[     "autoreload", -2], _
-	["showlinenumbers", -2], _
-	[      "framemame", -2]]
+	["showlinenumbers", -2]]
 	
 ; These values will be used in case of invalid ini values
 local $macrofile = "sample.mis", $targetwindow = "", $startkey = "Ctrl+P", $stopkey = "Ctrl+S"
@@ -85,7 +84,7 @@ local $gamekeys[$nkeys][$nplayers+2] = [ _
 	[     "short", "4",     "z",       "b"], _
 	[   "forward", "5",     "x",       "n"], _
 	["roundhouse", "6",     "c",       "m"]]
-local $autoreload = true, $showlinenumbers = true, $maxwarnings = 20, $framemame = false
+local $autoreload = true, $showlinenumbers = true, $maxwarnings = 20
 
 ; Table of special key names
 local $spkeys = "(SPACE|ENTER|BACKSPACE|BS|INSERT|INS|DELETE|DEL|HOME|END|PGUP|PGDN|" & _
@@ -106,6 +105,8 @@ local $funckeys[9][2] = [ _
 [">", "closebrackets()"], _
 ["+",        "pfirst()"], _
 ["-",         "pnext()"]]
+
+local $reservedchars[18] = [" ",",",".","W","_","^","*","+","-","<","/",">","(",")","$","&","#","!"]
 
 local $macrosize, $warningcount, $player, $nextkey, $unused, $frame, $line, $bracket[$nplayers+1], $inbrackets, _
 	$press[$nplayers][$nkeys], $hold[$nplayers][$nkeys], $inputstream[1][$nplayers][$nkeys], $comqueue[1]
@@ -133,6 +134,8 @@ guictrlsetstate($startitem, $gui_disable)
 local $stopitem = guictrlcreatemenuitem("Stop sending", $filemenu)
 guictrlsetstate($stopitem, $gui_disable)
 guictrlcreatemenuitem("", $filemenu)
+local $loopitem = guictrlcreatemenuitem("Toggle loop mode" & @tab & "Alt+L", $filemenu)
+guictrlsetonevent($loopitem, "toggleloop")
 local $clearitem = guictrlcreatemenuitem("Clear console" & @tab & "Ctrl+C", $filemenu)
 guictrlsetonevent($clearitem, "clear")
 local $quititem = guictrlcreatemenuitem("Quit" & @tab & "Ctrl+Q", $filemenu)
@@ -163,6 +166,8 @@ local $readmeitem = guictrlcreatemenuitem("Instructions" & @tab & "F1", $helpmen
 guictrlsetonevent($readmeitem, "readme")
 guictrlsetonevent(guictrlcreatemenuitem("About", $helpmenu), "showabout")
 
+local $loopmode = guictrlcreatecheckbox("&Loop mode", $btnx, 2)
+guictrlsetresizing(-1, $gui_dockleft + $gui_docktop + $gui_dockwidth + $gui_dockheight)
 guictrlcreatelabel("Script file", 4, 8)
 guictrlsetresizing(-1, $gui_dockleft + $gui_docktop + $gui_dockwidth + $gui_dockheight)
 local $filebar = guictrlcreateinput("", -1, 24, $mainx-8)
@@ -194,10 +199,11 @@ guictrlsetresizing(-1, $gui_dockleft + $gui_dockwidth + $gui_dockheight)
 local $progress = guictrlcreateprogress(234, -1, $mainx-204, 16, $ss_sunken)
 guictrlsetresizing(-1, $gui_dockleft + $gui_dockright + $gui_dockheight)
 
-local $accelkeys[13][2] = [ _
+local $accelkeys[14][2] = [ _
 	[       "^c", $clearitem], _
 	[       "^q", $quititem], _
 	[       "^o", $openitem], _
+	[       "!l", $loopitem], _
 	[     "{f5}", $reloadscriptitem], _
 	[     "{f6}", $editscriptitem], _
 	[     "{f7}", $viewscriptitem], _
@@ -325,6 +331,14 @@ endfunc
 
 func unloadscript()
 	setstatus(0)
+endfunc
+
+func toggleloop()
+	if guictrlread($loopmode) = $gui_unchecked then
+		guictrlsetstate($loopmode, $gui_checked)
+	else
+		guictrlsetstate($loopmode, $gui_unchecked)
+	endif
 endfunc
 
 func message($msg)
@@ -469,8 +483,6 @@ func loadsettings()
 'autoreload = true' & $l & $l & _
 '; Style of the text in the script analysis window' & $l & _
 'showlinenumbers = true' & $l & $l & _
-'; remove frameMAME audio commands from script (leave as false unless using frameMAME scripts)' & $l & _
-'framemame = false' & $l & _
 
 		local $inihandle = fileopen($configfile, 2)
 		filewrite($inihandle, $configtext)
@@ -483,6 +495,7 @@ func loadsettings()
 	endif
 
 ; Load misc. settings
+	$warningcount = 0
 	for $i = 0 to ubound($settings)-1
 		local $val = iniread($configfile, "settings", $settings[$i][0], "missing")
 		if $val == "missing" then
@@ -555,10 +568,16 @@ func loadsettings()
 
 	$useF_B = false
 	local $usingF = false, $usingB = false, $usingL = false, $usingR = false
-; Case desensitize the gamekey symbols
 	for $k = 0 to $nkeys-1
+; Case desensitize the gamekey symbols
 		for $p = 1 to $nplayers+1
 			$gamekeys[$k][$p] = stringupper($gamekeys[$k][$p])
+		next
+; Check if symbols are more than one character
+		if stringlen($gamekeys[$k][1]) <> 1 then warning("Game key symbol '" & $gamekeys[$k][1] & "' for " & $gamekeys[$k][0] & " must be a single character")
+; Check for reserved characters in key mapping
+		for $r in $reservedchars
+			if $gamekeys[$k][1] = $r then warning("Key mapping uses a reserved character '" & $r & "' for " & $gamekeys[$k][0])
 		next
 		switch $gamekeys[$k][1]
 		case "F"
@@ -580,7 +599,13 @@ func loadsettings()
 	applyhotkey($startkey, "playback", $startitem, "Start sending", 0)
 	applyhotkey($stopkey, "stopplayback", $stopitem, "Stop sending", 1)
 	$configtimestamp = filegettime($configfile, 0, 1)
-	message("Done loading settings." & $l)
+	if $warningcount = 0 then
+		message("Done loading settings." & $l)
+	elseif $warningcount = 1 then
+		message("Done loading settings. (1 warning)" & $l)
+	else
+		message("Done loading settings. (" & $warningcount & " warnings)" & $l)
+	endif
 	setstatus(0)
 endfunc
 
@@ -640,9 +665,6 @@ func loadscript($file)
 ; Remove lines commented with "#"
 	$macro = stringregexpreplace($macro, "#.*","")
 
-; Remove frameMAME audio commands
-	if $framemame then $macro = stringregexpreplace($macro, "[aA][mM!]|[aA][cCsS]\s?\d+|[aA][rR]\s?\d+\s\d+", "")
-
 ; Standardize line breaks
 	$macro = stringregexpreplace($macro, "\r\n|\n", @cr)
 
@@ -673,7 +695,7 @@ func loadscript($file)
 		char(stringleft($macro, 1))
 		$macro = stringtrimleft($macro, 1)
 		if $warningcount >= $maxwarnings and $maxwarnings > 0 then
-			message("Error: Too many warnings" & $l)
+			message("Error: Too many warnings (" & $warningcount & ")" & $l)
 			setstatus(1)
 			return
 		endif
@@ -810,7 +832,13 @@ func loadscript($file)
 	$loadedfile = $file
 	$scripttimestamp = filegettime($loadedfile, 0, 1)
 	winsettitle($details, "", "Script analysis: " & $loadedfile)
-	message("Done loading script." & $l)
+	if $warningcount = 0 then
+		message("Done loading script." & $l)
+	elseif $warningcount = 1 then
+		message("Done loading script. (1 warning)" & $l)
+	else
+		message("Done loading script. (" & $warningcount & " warnings)" & $l)
+	endif
 
 endfunc ;==>parse
 
@@ -872,7 +900,7 @@ endfunc
 
 func openbrackets() ; "<"
 	if $inbrackets then
-		warning("Tried to open brackets but they were already open")
+		warning("used '<' but brackets are already open")
 	else
 		$inbrackets = true
 		$player = 1
@@ -882,9 +910,9 @@ endfunc
 
 func nextbrackets() ; "/"
 	if not $inbrackets then
-		warning("Can only use '/' in brackets")
+		warning("can only use '/' in brackets")
 	elseif $player >= $nplayers then
-		warning("Used '/' but player " & $player & " is already selected")
+		warning("used '/' but player " & $player & " is already selected")
 	else
 		$bracket[$player] = $frame
 		$player += 1
@@ -894,7 +922,7 @@ endfunc
 
 func closebrackets() ; ">"
 	if not $inbrackets then
-		warning("Tried to close brackets but they were not open")
+		warning("used '>' but brackets are not open")
 	else
 		$bracket[$player] = $frame
 		local $highest = $bracket[0]
@@ -923,9 +951,9 @@ endfunc
 
 func pfirst() ; "+"
 	if $inbrackets then
-		warning("Cannot use '+' in brackets")
+		warning("cannot use '+' in brackets")
 	elseif $player = 1 then
-		warning("Used '+' but player 1 is already selected")
+		warning("used '+' but player 1 is already selected")
 	else
 		$player = 1
 	endif
@@ -933,9 +961,9 @@ endfunc
 
 func pnext() ; "-"
 	if $inbrackets then
-		warning("Cannot use '-' in brackets")
+		warning("cannot use '-' in brackets")
 	elseif $player >= $nplayers then
-		warning("Used '-' but player " & $player & " is already selected")
+		warning("used '-' but player " & $player & " is already selected")
 	else
 		$player += 1
 	endif
@@ -987,10 +1015,12 @@ func char(byref $key)
 		if stringupper($key) == $gamekeys[$k][1] then
 			switch $nextkey
 			case 0 ; press
-				if $press[$player-1][$k] or $hold[$player-1][$k] then warning("" & $key & " is already down for player " & $player)
+				if $press[$player-1][$k] then warning("'" & $key & "' is already pressed by player " & $player)
+				if $hold[$player-1][$k] then warning("'" & $key & "' is already held by player " & $player)
 				$press[$player-1][$k] = true
 			case 1 ; hold
-				if $press[$player-1][$k] or $hold[$player-1][$k] then warning("" & $key & " is already down for player " & $player)
+				if $press[$player-1][$k] then warning("'" & $key & "' is already pressed by player " & $player)
+				if $hold[$player-1][$k] then warning("'" & $key & "' is already held by player " & $player)
 				$hold[$player-1][$k] = true
 			case 2 ; release
 				if not $hold[$player-1][$k] then warning("" & $key & " is already up for player " & $player)
@@ -1080,7 +1110,7 @@ func playback()
 			$play = false
 			$stop = false
 			setstatus(4)
-			message("User canceled playback.")
+			message("Canceled playback.")
 			return
 		elseif $targetwindow and not winactive($targetwindow) then
 			$play = false
@@ -1089,6 +1119,7 @@ func playback()
 			message("Stopped playback because target window lost focus.")
 			return
 		endif
+		if $i = ubound($comqueue) and guictrlread($loopmode) = $gui_checked then $i = 0 ; loop mode
 	next
 	$play = false
 	message("Done.")
