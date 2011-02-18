@@ -203,6 +203,44 @@ end
 table.insert(inp, {games, i})
 
 --------------------------------------------------------------------------------
+--Forgotten Worlds (Capcom)
+
+games = {"forgottn"}
+x, dx = 0x08, 0x128
+y, dy = 0xD0, 0x0
+i = {}
+for n = 1, 2 do
+	i[n.."^"] = {x+dx*(n-1)+0x18, y+dy*(n-1)+0x0, "P"..n.." Up"}
+	i[n.."v"] = {x+dx*(n-1)+0x18, y+dy*(n-1)+0x8, "P"..n.." Down"}
+	i[n.."<"] = {x+dx*(n-1)+0x10, y+dy*(n-1)+0x4, "P"..n.." Left"}
+	i[n..">"] = {x+dx*(n-1)+0x20, y+dy*(n-1)+0x4, "P"..n.." Right"}
+	i[n.."S"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x8, "P"..n.." Attack", "P"..n.." Button 1"}
+	i[n.."P"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x0, "P"..n.." Turn",   "Dial"..(n==1 and "" or " "..n), 0x08}
+	i[n.."s"] = {x+dx*(n-1)+0x00, y+dy*(n-1)+0x0, "P"..n.." Start",  n..(n==1 and " Player" or " Players").." Start"}
+	i[n.."c"] = {x+dx*(n-1)+0x00, y+dy*(n-1)+0x8, "P"..n.." Coin",   "Coin "..n}
+end
+table.insert(inp, {games, i})
+
+--------------------------------------------------------------------------------
+--Puzz Loop 2 (Capcom)
+
+games = {"pzloop2"}
+x, dx = 0x08, 0x128
+y, dy = 0xD0, 0x0
+i = {}
+for n = 1, 2 do
+	i[n.."^"] = {x+dx*(n-1)+0x18, y+dy*(n-1)+0x0, "P"..n.." Up"}
+	i[n.."v"] = {x+dx*(n-1)+0x18, y+dy*(n-1)+0x8, "P"..n.." Down"}
+	i[n.."<"] = {x+dx*(n-1)+0x10, y+dy*(n-1)+0x4, "P"..n.." Left"}
+	i[n..">"] = {x+dx*(n-1)+0x20, y+dy*(n-1)+0x4, "P"..n.." Right"}
+	i[n.."S"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x8, "P"..n.." Shot",   "P"..n.." Button 1"}
+	i[n.."P"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x0, "P"..n.." Paddle", "Dial"..(n==1 and "" or " "..n), 0x08}
+	i[n.."s"] = {x+dx*(n-1)+0x00, y+dy*(n-1)+0x0, "P"..n.." Start",  n..(n==1 and " Player" or " Players").." Start"}
+	i[n.."c"] = {x+dx*(n-1)+0x00, y+dy*(n-1)+0x8, "P"..n.." Coin",   "Coin "..n}
+end
+table.insert(inp, {games, i})
+
+--------------------------------------------------------------------------------
 --TMNT games (Konami)
 
 games = {"tmnt", "tmnt2"}
@@ -224,12 +262,12 @@ table.insert(inp, {games, i})
 --After Burner (Sega)
 
 games = {"aburner2"}
-x, dx = 0x80, 0x10
-y, dy = 0xC8, 0x0
+x, dx = 0x80
+y, dy = 0xC8
 i = {
-	["1X"] = {x+0x10, y+0x00, "Left/Right", "AD Stick X", dx, dy},
-	["1Y"] = {x+0x10, y+0x08, "Up/Down",    "AD Stick Y", dx, dy},
-	["1T"] = {x+0x10, y+0x10, "Throttle",   "AD Stick Z", dx, dy},
+	["1X"] = {x+0x10, y+0x00, "Left/Right", "AD Stick X", 0x10},
+	["1Y"] = {x+0x10, y+0x08, "Up/Down",    "AD Stick Y", 0x10},
+	["1T"] = {x+0x10, y+0x10, "Throttle",   "AD Stick Z", 0x10},
 	["1V"] = {x+0x30, y+0x04, "Vulcan"},
 	["1M"] = {x+0x30, y+0x0c, "Missile"},
 	["1C"] = {x+0x00, y+0x00, "Coin 1"},
