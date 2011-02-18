@@ -18,7 +18,7 @@ h6 { margin: 0 ; text-align: right ; }
 .emu { font-weight: bold ; width: 14% ; }
 .yes { background-color: #BBFFBB ; }
 .no { background-color: #FFBBBB ; }
-.meh { background-color: #BBBBBB ; }
+.meh { background-color: #CCCCCC ; }
 .foot { vertical-align: super ; font-size: 60% ; }
 #foot { font-size: 80% ; }
 #feat { list-style-type: upper-alpha ; }
@@ -87,14 +87,14 @@ h6 { margin: 0 ; text-align: right ; }
 <p>You may replay the macro repeatedly. You may cut the playback short by pressing the start key again before playback is complete. You may also edit the macro file and play the new macro without reloading the script.</p>
 
 <h3><a name="record" />How to record</h3>
-<p>Get to the desired point in the game and press the record key (quote) to start recording. Any keys input by the player(s), by keypress recordings such as FBM, or even by a playing macro will be recorded. Pressing the record key again stops and writes the recording to a <i>.mis</i> file named after the date and time. If multiple players were recorded, the macro is output in asynchronous (bracket) format.</p>
+<p>Get to the desired point in the game and press the record key (quote, or Lua hotkey 2) to start recording. Any keys input by the player(s), by keypress recordings such as FBM, or even by a playing macro will be recorded. You can use frame advance for more precision. Savestate operations and analog controls are not recorded. Pressing the record key again stops and writes the recording to a <i>.mis</i> file named after the date and time. If multiple players were recorded, the macro is output in asynchronous (bracket) format.</p>
 
 <h3><a name="keys" />Key bindings</h3>
 <p>If the emulator supports <code>input.registerhotkey()</code>, the keys to start and stop macros are Lua hotkeys 1 and 2 rather than semicolon and quote. These keys can be bound in the emulator's hotkey configuration.</p>
 
 <h3><a name="savestates" />Savestates</h3>
 <p>Some emulators allow the progress of any macros being played or recorded to be saved alongside the savestate. Loading this savestate also restores the progress and the playing/recording status. If this is not supported, loading a savestate during a macro will cause a desync.</p>
-<p>Even if those functions aren't available, savestate operations may always be written into the script, and scripts should start with a savestate to ensure consistent playback. Savestate operations are not recorded in macro recording mode.</p>
+<p>Even if those functions aren't available, savestate operations may always be written into the script, and scripts should start with a savestate to ensure consistent playback.</p>
 
 <hr />
 
@@ -105,11 +105,17 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>k</code></th>
 <td>Input the gamekey <code>k</code>. The key is pressed for the current frame only and then released.</td></tr>
 
+<tr><th><code>k[n]</code></th>
+<td>Set the analog control <code>k</code> to the (decimal) value <code>n</code>.</td></tr>
+
+<tr><th><code>k[-nh]</code></th>
+<td>You may use a minus sign to set the an analog to a negative number, and an <code>h</code> to signify a hexadecimal number.</td></tr>
+
 <tr><th><code>_k</code></th>
-<td>Hold the gamekey <code>k</code>. The key is pressed for the current frame and any subsequent frames until released.</td></tr>
+<td>Hold the gamekey <code>k</code>. The key is pressed for the current frame and any subsequent frames until released. This also works with analogs.</td></tr>
 
 <tr><th><code>^k</code></th>
-<td>Release the gamekey <code>k</code>, if held.</td></tr>
+<td>Release the gamekey <code>k</code>, if held. When releasing analogs, there must still be brackets with a number even though the number will be ignored.</td></tr>
 
 <tr><th><code>*</code></th>
 <td>Release all held keys.</td></tr>
@@ -178,21 +184,17 @@ h6 { margin: 0 ; text-align: right ; }
 <td>End the macro. Any content after the end is ignored by the parser, and can be used as comments.<br />Don't forget to advance at least one frame after the last input and before the end.</td></tr>
 
 <tr><th><code>???</code></th>
-<td>If a script has three consecutive <code>?</code> symbols in an uncommented area, MacroLua converts it to the expanded one-line-per-frame format. The conversion occurs instead of playback and is activated by the playback key. The result is saved as a text file. This feature can help in analyzing and debugging scripts.</td></tr>
+<td>If a script has three consecutive <code>?</code> symbols in an uncommented area, MacroLua converts it to the expanded one-line-per-frame format. Analog control values are given as hexadecimal numbers. The conversion occurs instead of playback and is activated by the playback key. The result is saved as a text file. This feature can help in analyzing and debugging scripts.</td></tr>
 </table>
 
 <p>Macros are case insensitive. Commas, whitespaces, tabs and newlines can be used for spacing and legibility, but are ignored by the script. The exception is that some separation is required between multiplier or index numbers (such as after a <code>W</code>) and numerical key presses.</p>
 
-<p>Analog inputs are not (yet) supported.</p>
-
 <hr />
 
 <h2><a name="modules" />Control modules</h2>
-<p>The game inputs and the symbols used to activate them depend on game system. MacroLua selects the symbol-input mapping based on what emulator is running it, and in the case of arcade, based on the game being run. The available sets are written in <i>macro-modules.lua</i>, and more can be added. Ask for help if needed.</p>
+<p>The game inputs and the symbols used to activate them depend on game system. MacroLua selects the symbol-input mapping based on what emulator is running it, and in the case of arcade, based on the game being run. The traditional format is <code>U</code>,<code>D</code>,<code>L</code>,<code>R</code> for up, down, left and right, and numbers counting up from <code>1</code> for the buttons. Symbols should be a single character for digital controls, but analog symbols can have multiple characters. Avoid using the reserved characters in symbols: <code><b>. W w _ ^ * + - &lt; / &gt; ( ) [ ] $ &amp; # ! ?</b></code></p>
 
-<p>The traditional format is <code>U</code>,<code>D</code>,<code>L</code>,<code>R</code> for up, down, left and right, and numbers counting up from <code>1</code> for the buttons. The non-arcade systems have a single keyset for all games, so the format only needs to be defined once for each console.</p>
-
-<p>However, there are many undefined arcade profiles. MacroLua tries to autogenerate an arcade module if none is available by observing what keys are present in the game. This should work well with games that use an ordinary joystick and numbered buttons.</p>
+<p>The available sets are written in <i>macro-modules.lua</i>, and more can be added. Ask for help if needed. The non-arcade systems have a single keyset for all games, so the format only needs to be defined once for each console. However, there are many undefined arcade profiles. MacroLua tries to autogenerate an arcade module if none is available by observing what keys are present in the game. This should work well with games that use an ordinary joystick and numbered buttons.</p>
 
 <hr />
 
@@ -266,31 +268,32 @@ h6 { margin: 0 ; text-align: right ; }
 
 <table>
 <tbody align="center">
-<tr><th>emulator</th><th>version tested</th><th><code>emu</code> alias</th><th>hotkey while<br />paused</th><th>lua+user<br />input</th><th>bulletproof<br />savestates</th><th>adapt to<br />ROMs</th></tr>
+<tr><th>emulator</th><th>version tested</th><th><code>emu</code> alias</th><th>hotkey while<br />paused</th><th>lua+user<br />input</th><th>bulletproof<br />savestates</th><th>adapt to<br />ROMs</th><th>analog<br />scripting</th></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a></td><td class="yes">0139-test2</td><td class="yes"><code>mame</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/mame-rr/downloads/list">MAME-rr</a></td><td class="yes">0139-test2</td><td class="yes"><code>mame</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="yes">○</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td class="yes">0.0.5a</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/fbarr/downloads/list">FBA-rr</a></td><td class="yes">0.0.5a</td><td class="yes"><code>fba</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td class="yes">0.1.3b</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcsxrr/downloads/list">PCSX-rr</a></td><td class="yes">0.1.3b</td><td class="yes"><code>pcsx</code></td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/psxjin/downloads/list">psxjin</a></td><td class="yes">2.0 svn619</td><td class="yes"><code>psxjin</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td class="yes">11 svn296</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/gens-rerecording/downloads/list">Gens-rr</a></td><td class="yes">11 svn296</td><td class="yes"><code>gens</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="meh">n/a</td></tr>
 
-<tr><td class="emu" rowspan="3"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td class="yes">1.43 svn146</td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu" rowspan="3"><a href="http://code.google.com/p/snes9x-rr/downloads/list">snes9x-rr</a></td><td class="yes">1.43 svn146</td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="meh" rowspan="3">n/a</td></tr>
 <tr><td class="no">1.51 svn147<a class="foot" href="#1">[1]</a></td><td class="yes"><code>snes9x</code></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
 <tr><td class="no">1.52 r185<a class="foot" href="#2">[2]</a></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu" rowspan="2"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td class="yes"><a href="http://code.google.com/p/vba-rerecording/downloads/detail?name=vba-rerecording-svn225-win32.zip">svn225</a></td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
+<tr><td class="emu" rowspan="2"><a href="http://code.google.com/p/vba-rerecording/downloads/list">VBA-rr</a></td><td class="yes"><a href="http://code.google.com/p/vba-rerecording/downloads/detail?name=vba-rerecording-svn225-win32.zip">svn225</a></td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td><td class="meh" rowspan="2">n/a</td></tr>
 <tr><td class="no">23.4a<a class="foot" href="#3">[3]</a></td><td class="yes"><code>vba</code></td><td class="no">×</td><td class="yes">○</td><td class="no">×</td><td class="no">×</td></tr>
 
-<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td class="yes">2.1.4a</td><td class="yes"><code>FCEU</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://www.fceux.com/web/download.html">FCEUX</a></td><td class="yes">2.1.4a</td><td class="yes"><code>FCEU</code></td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="meh">n/a</td></tr>
 
-<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td class="no">SVN177<a class="foot" href="#3">[4]</a></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td></tr>
+<tr><td class="emu"><a href="http://code.google.com/p/pcejin/downloads/list">PCEjin</a></td><td class="no">SVN177<a class="foot" href="#3">[4]</a></td><td class="no">×</td><td class="yes">○</td><td class="yes">○</td><td class="yes">○</td><td class="no">×</td><td class="meh">n/a</td></tr>
 
-<tr><th><a href="http://desmume.org/">DeSmuMe</a></th><td>0.9.6</td><td colspan="5">not yet tested</td></tr>
-<tr><th><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></th><td>1.1</td><td colspan="5">use <a href="http://code.google.com/p/macrolua/wiki/TranScripterDocumentation">TranScripter</a></td></tr>
-<tr><th><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></th><td>svn2541</td><td colspan="5">use <a href="http://code.google.com/p/macrolua/wiki/TranScripterDocumentation">TranScripter</a></td></tr>
-<tr><th><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></th><td>v8</td><td colspan="5">does not support Lua</td></tr>
+<tr><th><a href="http://desmume.org/">DeSmuMe</a></th><td>0.9.6</td><td colspan="6">not yet tested</td></tr>
+<tr><th><a href="http://code.google.com/p/mednafen-rr/">mednafen-rr</a></th><td>1.1</td><td colspan="6">use <a href="http://code.google.com/p/macrolua/wiki/TranScripterDocumentation">TranScripter</a></td></tr>
+<tr><th><a href="http://code.google.com/p/yabause-rr/">yabause-rr</a></th><td>svn2541</td><td colspan="6">use <a href="http://code.google.com/p/macrolua/wiki/TranScripterDocumentation">TranScripter</a></td></tr>
+<tr><th><a href="http://code.google.com/p/mupen64-rr/">mupen64-rr</a></th><td>v8</td><td colspan="6">does not support Lua</td></tr>
 </tbody></table>
 
 <div id="foot"><ol>
@@ -313,8 +316,10 @@ h6 { margin: 0 ; text-align: right ; }
 <br /><br />This feature has not been well tested.</td></tr>
 <tr><th>adapt to ROMs</th>
 <td>MacroLua can name recordings and reset the control scheme based on the loaded game if <code>emu.registerstart()</code> and <code>emu.romname()</code> are available.</td></tr>
+<tr><th>analog scripting</th>
+<td>If the emulator's system has analog controls and the emu handles them properly with <code>joypad.set()</code>, MacroLua can script analog inputs.</td></tr>
 </table>
 
-<h6>2/1/2011</h6>
+<h6>2/18/2011</h6>
 </body>
 </html>

@@ -11,7 +11,7 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-local macrolua = "1.11, 11/5/2010"
+macrolua = "1.12, 2/17/2011"
 print("MacroLua v" .. macrolua)
 if fba and not emu.registerstart then
 	error("This script requires a newer version of FBA-rr.", 0)
@@ -52,33 +52,51 @@ else
 	end
 end
 
-local module,nplayers,useF_B
+local nplayers,keymap,analog,useF_B
 
-local function check_module() --determine if it's OK to convert F/B to L/R
+local function check_module(set) --check if reserved chars are being used and determine if it's OK to convert F/B to L/R
 	local using = {}
-	for _,v in ipairs(module) do
-		local key = string.upper(v[1])
-		using[key] = true
-		for _,reserved in ipairs({".","W","_","^","*","+","-","<","/",">","(",")","$","&","#","!"}) do
-			if key == reserved then
-				print("Warning: module uses a reserved character '" .. v[1] .. "' for " .. v[2])
+	for _,key in ipairs(set.keymap or {}) do
+		if key[1]:len() > 1 then
+			print("Warning: symbol for '" .. (mame and key[3] or key[2]) .. "' ('" .. key[1] .. "') should be a single character.")
+		end
+		using[key[1]:upper()] = true
+		for _,reserved in ipairs({".","W","_","^","*","+","-","<","/",">","(",")","[","]","$","&","#","!"}) do
+			if key[1]:upper() == reserved then
+				print("Warning: the reserved character '" .. key[1] .. "' is mapped to '" .. (mame and key[3] or key[2]) .. "'.")
 			end
 		end
 	end
 	useF_B = using.L and using.R and not (using.F or using.B)
+	for _,control in ipairs(set.analog or {}) do
+		for _,reserved in ipairs({".","_","^","*","+","-","<","/",">","(",")","[","]","$","&","#","!"}) do
+			if control[1]:find(reserved, 1, true) then
+				print("Warning: the reserved character '" .. reserved .. "' is part of the '" .. (mame and control[3] or control[2]) .. "' symbol.")
+			end
+		end
+	end
 end
 
-local function add(symbol, key) --add keys to the generic module
-	table.insert(module, {symbol, key})
-	print(symbol .. "\t" .. key)
+local function add(symbol, name) --add keys to the generic module
+	local newkey = {symbol = symbol}
+	for p = 1,nplayers do
+		newkey[p] = name:gsub("#", p)
+		if newkey[p]:find(" Player Start") and p > 1 then
+			newkey[p] = newkey[p]:gsub(" Player Start", " Players Start")
+		end
+	end
+	table.insert(keymap, newkey)
+	print(symbol .. "\t" .. name)
 end
 
 local function generic() --try to detect controls and make a generic module
 	local c = joypad.get()
-	local stick,nbuttons,label = 0,0
+	local stick,nbuttons,label = {},0
 	nplayers = 1
-	if c["P1 Up"] ~= nil and c["P1 Down"] ~= nil and c["P1 Left"] ~= nil and c["P1 Right"] ~= nil then
-		stick = 1
+	for _,v in ipairs({{"L", "P1 Left"}, {"R", "P1 Right"}, {"U", "P1 Up"}, {"D", "P1 Down"}}) do
+		if c[v[2]] ~= nil then
+			table.insert(stick, v)
+		end
 	end
 	for b = 10,1,-1 do
 		for _,v in ipairs({"P1 Button " .. b, "P1 Fire " .. b}) do
@@ -98,32 +116,29 @@ local function generic() --try to detect controls and make a generic module
 			break
 		end
 	end
-	if stick+nbuttons == 0 then --found neither stick nor buttons
+	if #stick+nbuttons == 0 then
+		print("generic module: found neither stick nor buttons")
 		return
 	end
 	
-	print("Using generic module: "..nplayers.."-player, "..nbuttons.."-button"..(stick > 0 and "" or ", no joystick"))
+	print("generic module: "..nplayers.."-player, "..(#stick > 0 and #stick .. "-way" or "no") .. " joystick, "..nbuttons.."-button")
 	print("Symbol:\tCommand:")
-	module = {}
-	if stick > 0 then
-		add("U", "P# Up")
-		add("D", "P# Down")
-		add("L", "P# Left")
-		add("R", "P# Right")
+	for _,v in ipairs(stick) do
+		add(v[1], v[2]:gsub("P1 ", "P# "))
 	end
 	for b = 1,nbuttons do
 		b = tostring(b)
 		add(b, "P#" .. label .. b)
 	end
-	for _,v in ipairs({"1 Player Start", "P1 Start", "Start 1"}) do
-		if c[v] ~= nil then
-			add("S", v:gsub("1","#"))
+	for _,start_button in ipairs({"1 Player Start", "P1 Start", "Start 1"}) do
+		if c[start_button] ~= nil then
+			add("S", start_button:gsub("1","#"))
 			break
 		end
 	end
-	for _,v in ipairs({"Coin 1", "P1 Coin"}) do
-		if c[v] ~= nil then
-			add("C", v:gsub("1","#"))
+	for _,coin_button in ipairs({"Coin 1", "P1 Coin"}) do
+		if c[coin_button] ~= nil then
+			add("C", coin_button:gsub("1","#"))
 			break
 		end
 	end
@@ -135,16 +150,34 @@ local function generic() --try to detect controls and make a generic module
 end
 
 local function findarcademodule()
-	for _,v in ipairs(arcade) do
-		for _,romname in ipairs(v[1]) do
+	keymap,analog = {},{}
+	for _,set in ipairs(arcade) do
+		for _,romname in ipairs(type(set.games) == "table" and set.games or {set.games}) do
 			if emu.romname() == romname or emu.parentname() == romname or emu.sourcename() == romname then
 				print("Using " .. romname .. " module") print()
-				nplayers = v[2]
-				module = v[3]
-				for _,keyname in ipairs(module) do
-					keyname[2] = mame and keyname[3] or keyname[2]
+				nplayers = set.players or 0
+				for _,key in ipairs(set.keymap or {}) do
+					local newkey = {symbol = key[1]:upper()}
+					for p = 1,nplayers do
+						newkey[p] = (mame and key[3] or key[2]):gsub("#",p)
+						if newkey[p]:find(" Player Start") and p > 1 then
+							newkey[p] = newkey[p]:gsub(" Player Start", " Players Start")
+						end
+					end
+					table.insert(keymap, newkey)
 				end
-				check_module()
+				for _,key in ipairs(set.analog or {}) do
+					local newkey = {symbol = key[1]:upper()}
+					for p = 1,nplayers do
+						newkey[p] = (mame and key[3] or key[2]):gsub("#",p)
+						if newkey[p] == "Dial 1" then
+							newkey[p] = "Dial"
+						end
+					end
+					newkey.spaces = math.max(6, key[1]:len()+1)
+					table.insert(analog, newkey)
+				end
+				check_module(set)
 				return
 			end
 		end
@@ -153,12 +186,29 @@ local function findarcademodule()
 end
 
 local function findmodule()
-	for _,v in ipairs(single) do
-		if v[1] then
-			nplayers = v[2]
-			module = v[3]
-			check_module()
-			return
+	keymap,analog = {},{}
+	for _,set in ipairs(single) do
+		for _,emuname in pairs(set.emulator or {}) do
+			if emuname then
+				nplayers = set.players or 0
+				for _,key in ipairs(set.keymap or {}) do
+					local newkey = {symbol = key[1]:upper()}
+					for p = 1,nplayers do
+						newkey[p] = key[2]
+					end
+					table.insert(keymap, newkey)
+				end
+				for _,key in ipairs(set.analog or {}) do
+					local newkey = {symbol = key[1]:upper()}
+					for p = 1,nplayers do
+						newkey[p] = key[2]
+					end
+					newkey.spaces = math.max(6, key[1]:len()+1)
+					table.insert(analog, newkey)
+				end
+				check_module(set)
+				return
+			end
 		end
 	end
 	error("No module found for this emulator in macro-modules.lua.",0)
@@ -193,10 +243,22 @@ local wait,dumpmode,loopmode = {}
 local statekeys = {["$"] = "save", ["&"] = "load"}
 
 local function updatestream(p, f) --Inject holds and presses into the inputstream.
-	for _,v in ipairs(module) do
-		if hold[p][v[1]] or press[p][v[1]] then
+	for _,key in ipairs(keymap) do
+		if hold[p][key.symbol] or press[p][key.symbol] then
 			inputstream[f] = inputstream[f] or {}
-			inputstream[f][p] = not inputstream[f][p] and v[1] or inputstream[f][p] .. v[1]
+			inputstream[f][p] = inputstream[f][p] or {}
+			inputstream[f][p][key.symbol] = true
+		end
+	end
+	for _,control in ipairs(analog) do
+		if press[p][control.symbol] then
+			inputstream[f] = inputstream[f] or {}
+			inputstream[f][p] = inputstream[f][p] or {}
+			inputstream[f][p][control.symbol] = press[p][control.symbol]
+		elseif hold[p][control.symbol] then
+			inputstream[f] = inputstream[f] or {}
+			inputstream[f][p] = inputstream[f][p] or {}
+			inputstream[f][p][control.symbol] = hold[p][control.symbol]
 		end
 	end
 	press[p] = {} --Clear keypresses at the end of the frame.
@@ -292,40 +354,40 @@ local funckeys = {
 	end,
 }
 
-local function char(c)
-	for k in pairs(funckeys) do --special keys
-		if c == k then
-			warning("did not follow '_' with a game key", nextkey == hold)
-			warning("did not follow '^' with a game key", nextkey == nil)
-			funckeys[k]()
+local function char(c) --parse function symbols, game keys, spaces and linebreaks
+	for key in pairs(funckeys) do --special keys
+		if c == key then
+			warning("followed '_' with non-game key '" .. key .. "'", nextkey == hold)
+			warning("followed '^' with non-game key '" .. key .. "'", nextkey == nil)
+			funckeys[key]()
 			return
 		end
 	end
-	if useF_B and string.upper(c) == "F" then --Convert F/B to L/R depending on player.
+	if useF_B and c:upper() == "F" then --Convert F/B to L/R depending on player.
 		c = player%2 == 0 and "L" or "R"
-	elseif useF_B and string.upper(c) == "B" then
+	elseif useF_B and c:upper() == "B" then
 		c = player%2 == 0 and "R" or "L"
 	end
-	for _,v in ipairs(module) do --game keys
-		if string.upper(c) == v[1] then
+	for _,key in ipairs(keymap) do --game keys
+		if c:upper() == key.symbol:upper() then
 			if not nextkey then --release
-				hold[player][v[1]] = nil
+				hold[player][key.symbol] = nil
 			else --press or hold
-				warning("'" .. v[1] .. "' is already pressed by player " .. player, press[player][v[1]])
-				warning("'" .. v[1] .. "' is already held by player " .. player, hold[player][v[1]])
-				nextkey[player][v[1]] = true
+				warning("'" .. key.symbol .. "' is already pressed by player " .. player, press[player][key.symbol])
+				warning("'" .. key.symbol .. "' is already held by player " .. player, hold[player][key.symbol])
+				nextkey[player][key.symbol] = true
 			end
 			nextkey = press
 			return
 		end
 	end
-	for _,v in ipairs({" ",",","\t"}) do --Remove commas, spaces and tabs.
-		if c == v then
+	for _,space in ipairs({" ",",","\t"}) do --Remove commas, spaces and tabs.
+		if c == space then
 			return
 		end
 	end
-	for _,v in ipairs({"\n","\r"}) do --Remove linebreaks.
-		if c == v then
+	for _,linebreak in ipairs({"\n","\r"}) do --Remove linebreaks.
+		if c == linebreak then
 			line = line+1
 			return
 		end
@@ -333,6 +395,35 @@ local function char(c)
 	warning("'" .. c .. "' is unrecognized", c:len() > 0) --invalid character
 	junk = junk .. c
 	return
+end
+
+local function multichar(m) --parse savestate ops and analog controls
+	local chunk = m:find("[%._%^%*</>]") --examine a chunk of script until a function key is found
+	chunk = chunk and m:sub(1, chunk-1):upper() or m:upper()
+	local smallchunk = chunk:find("^[^%[]*[%+%-]") --ensure + - symbols are outside of [ ]
+	chunk = smallchunk and m:sub(1, smallchunk-1) or chunk
+	local etc = m:sub(chunk:len()+1)
+	chunk = chunk:gsub("([%$&]) ?(%d+)", function(o, s) --Queue save/load ops before parsing the controls.
+		op, slot, tempframe = o, s, frame --The frame number is not correct until the rest of the frame is parsed.
+		return ""
+	end)
+	for _,control in ipairs(analog or {}) do --analog controls
+		chunk = chunk:gsub("(" .. control.symbol .. " ?%[([+-]?) ?([^%]]-) ?([hH]?) ?%])", function(capture, sign, val, hex)
+			val = tonumber(val, hex:len() > 0 and 16 or 10)
+			if warning("Invalid analog value: " .. capture, not val) then return "" end
+			val = (sign == "-" and -1 or 1) * val
+			if not nextkey then --release
+				hold[player][control.symbol] = nil
+			else --press or hold
+				warning("'" .. control.symbol .. "' is already pressed by player " .. player, press[player][control.symbol] ~= nil)
+				warning("'" .. control.symbol .. "' is already held by player " .. player, hold[player][control.symbol] ~= nil)
+				nextkey[player][control.symbol] = val
+			end
+			nextkey = press
+			return ""
+		end)
+	end
+	return chunk .. etc
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -384,10 +475,7 @@ local function parse(macro)
 	nextkey,inbrackets,bracket = press,false,{}
 
 	while string.len(m) > 0 do
-		m = m:gsub("^([%$&]) ?(%d+)", function(o, s) --Clear save/load strings first.
-			op, slot, tempframe = o, s, frame --The frame number is not correct until the rest of the frame is parsed.
-			return ""
-		end)
+		m = multichar(m)
 		char(m:sub(1, 1))
 		m = m:sub(2)
 	end
@@ -457,8 +545,8 @@ local function finalize(t)
 				activeplayers = p
 				break
 			end
-		end
 		if activeplayers > 0 then break end
+		end
 	end
 	if activeplayers == 0 then
 		print("Stopped recording: No input was entered in", recframe, "frames.") print()
@@ -468,19 +556,19 @@ local function finalize(t)
 	--Substitute _holds and ^releases for long press sequences.
 	if longpress > 0 then
 		for p = 1,activeplayers do
-			for _,v in ipairs(module) do
+			for _,key in ipairs(keymap) do
 				local hold,release,pressed,oldpressed = 0,0,false,false
 				for f = 1,recframe+1 do
-					pressed = t[f] and t[f][p] and t[f][p]:find(v[1])
+					pressed = t[f] and t[f][p] and t[f][p]:find(key.symbol)
 					if pressed and not oldpressed then hold = f end
 					if not pressed and oldpressed then release = f
 						if release-hold >= longpress then --only hold if the press is long
 							t[release] = t[release] or {}
 							t[release][p] = t[release][p] or ""
 							if f == recframe+1 then recframe = f end --add another frame to process the release if necessary
-							for fr = hold,release do t[fr][p] = t[fr][p]:gsub(v[1], "") end --take away the presses
-							t[hold][p] = t[hold][p] .. "_" .. v[1] --add the hold at the beginning
-							t[release][p] = t[release][p] .. "^" .. v[1] --add the release at the end
+							for fr = hold,release do t[fr][p] = t[fr][p]:gsub(key.symbol, "") end --take away the presses
+							t[hold][p] = t[hold][p] .. "_" .. key.symbol --add the hold at the beginning
+							t[release][p] = t[release][p] .. "^" .. key.symbol --add the release at the end
 						end
 					end
 					oldpressed = pressed
@@ -627,19 +715,30 @@ local function dumpinputstream()
 	local dump = ""
 	for p = 1,nplayers do --header row
 		dump = dump .. "|"
-		for _,v in ipairs(module) do
-			dump = dump .. v[1]
+		for _,key in ipairs(keymap) do
+			dump = dump .. key.symbol
+		end
+		for _,control in ipairs(analog) do
+			dump = dump .. string.format("%"..control.spaces.."s", control.symbol)
 		end
 	end
 	dump = dump .. "|\n"
 	for f = 1,macrosize do --frame rows
 		for p = 1,nplayers do
 			dump = dump .. "|"
-			for _,v in ipairs(module) do
-				if inputstream[f] and inputstream[f][p] and string.find(inputstream[f][p], v[1]) then
-					dump = dump .. v[1]
+			for _,key in ipairs(keymap) do
+				if inputstream[f] and inputstream[f][p] and inputstream[f][p][key.symbol] then
+					dump = dump .. key.symbol
 				else
 					dump = dump .. "."
+				end
+			end
+			for _,control in ipairs(analog) do
+				if inputstream[f] and inputstream[f][p] and inputstream[f][p][control.symbol] then
+					local number = string.format("%X", math.abs(inputstream[f][p][control.symbol]))
+					dump = dump .. string.format("%"..control.spaces.."s", (inputstream[f][p][control.symbol] < 0 and "-" or "") .. number)
+				else
+					dump = dump .. string.rep(" ", control.spaces)
 				end
 			end
 		end
@@ -794,14 +893,21 @@ emu.registerbefore(function()
 		frame = frame+1
 		dostate(frame)
 		inputstream[frame] = inputstream[frame] or {}
-		for p = 1,nplayers do if not inputstream[frame][p] then inputstream[frame][p] = "" end end
+		for p = 1,nplayers do
+			inputstream[frame][p] = inputstream[frame][p] or {}
+		end
 		if fba or mame then --In fba and mame, joypad.set is called once without a player number.
 			keytable = {}
 			for p = 1,nplayers do
-				for _,v in ipairs(module) do
-					local u = v[2]:gsub("#", p)
-					if p > 1 then u = u:gsub("Player Start", "Players Start") end
-					if inputstream[frame][p]:find(v[1]) then keytable[u] = true end
+				for n,key in ipairs(keymap) do
+					if inputstream[frame][p][key.symbol] then
+						keytable[keymap[n][p]] = true
+					end
+				end
+				for n,control in ipairs(analog) do
+					if inputstream[frame][p][control.symbol] then
+						keytable[analog[n][p]] = inputstream[frame][p][control.symbol]
+					end
 				end
 			end
 			if keytable["Reset"] == 1 and emu.softreset then emu.softreset() end
@@ -809,8 +915,8 @@ emu.registerbefore(function()
 			keytable = {}
 			for p = 1,nplayers do
 				keytable[p] = joypad.getdown(p) --This allows lua+user input
-				for _,v in ipairs(module) do
-					if inputstream[frame][p]:find(v[1]) then keytable[p][v[2]] = true end
+				for n,key in ipairs(keymap) do
+					if inputstream[frame][p][key.symbol] then keytable[p][keymap[n][p]] = true end
 				end
 			end
 		end
@@ -847,12 +953,10 @@ emu.registerafter(function() --recording is done after the frame, not before, to
 	if recording then
 		recframe = recframe+1
 		for p = 1,nplayers do
-			for _,v in ipairs(module) do
-				local u = v[2]:gsub("#", p)
-				if p > 1 then u = u:gsub("Player Start", "Players Start") end
-				if joypad.get(p)[u] == 1 and not (p > 1 and u == v[2]) or joypad.get(p)[u] == true then
+			for n,key in ipairs(keymap or {}) do
+				if joypad.get(p)[keymap[n][p]] == 1 or joypad.get(p)[keymap[n][p]] == true then
 					recinputstream[recframe] = recinputstream[recframe] or {}
-					recinputstream[recframe][p] = not recinputstream[recframe][p] and v[1] or recinputstream[recframe][p] .. v[1]
+					recinputstream[recframe][p] = not recinputstream[recframe][p] and key.symbol or recinputstream[recframe][p] .. key.symbol
 				end
 			end
 		end
