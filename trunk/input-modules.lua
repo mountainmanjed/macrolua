@@ -215,7 +215,7 @@ for n = 1, 2 do
 	i[n.."<"] = {x+dx*(n-1)+0x10, y+dy*(n-1)+0x4, "P"..n.." Left"}
 	i[n..">"] = {x+dx*(n-1)+0x20, y+dy*(n-1)+0x4, "P"..n.." Right"}
 	i[n.."S"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x8, "P"..n.." Attack", "P"..n.." Button 1"}
-	i[n.."P"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x0, "P"..n.." Turn",   "Dial"..(n==1 and "" or " "..n), 0x08}
+	i[n.."T"] = {x+dx*(n-1)+0x30, y+dy*(n-1)+0x0, "P"..n.." Turn",   "Dial"..(n==1 and "" or " "..n), 0x08}
 	i[n.."s"] = {x+dx*(n-1)+0x00, y+dy*(n-1)+0x0, "P"..n.." Start",  n..(n==1 and " Player" or " Players").." Start"}
 	i[n.."c"] = {x+dx*(n-1)+0x00, y+dy*(n-1)+0x8, "P"..n.." Coin",   "Coin "..n}
 end
@@ -262,8 +262,8 @@ table.insert(inp, {games, i})
 --After Burner (Sega)
 
 games = {"aburner2"}
-x, dx = 0x80
-y, dy = 0xC8
+x = 0x80
+y = 0xC8
 i = {
 	["1X"] = {x+0x10, y+0x00, "Left/Right", "AD Stick X", 0x10},
 	["1Y"] = {x+0x10, y+0x08, "Up/Down",    "AD Stick Y", 0x10},
