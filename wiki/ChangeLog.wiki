@@ -6,6 +6,17 @@
 ----
 = !MacroLua =
 
+== v1.13, 2/18/2011 ==
+=== Enhancements: ===
+ * Parsing for analog controls simplified:
+   * You can override a hold with another hold. No need to use `^` or `*` before holding again.
+   * To cancel a hold, use any non-hold. Putting `^` or nothing before the command will input the value for one frame, then release.
+ * Text dump mode also dumps savestate ops now.
+
+=== Problems fixed: ===
+ * Scripting analog and binary commands on the same frame no longer causes parse errors.
+ * Analog values were not being shown by `input-display.lua`. (Although the shown values are still wrong.)
+
 == v1.12, 2/18/2011 ==
 === New feature: ===
  * Support for scripting analog controls
