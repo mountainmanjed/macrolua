@@ -11,7 +11,7 @@ See macro-readme.html for help and instructions.
 ----------------------------------------------------------------------------------------------------
 --[[ Prepare the script for the current emulator and the game. ]]--
 
-macrolua = "1.12, 2/17/2011"
+macrolua = "1.13, 2/18/2011"
 print("MacroLua v" .. macrolua)
 if fba and not emu.registerstart then
 	error("This script requires a newer version of FBA-rr.", 0)
@@ -67,14 +67,17 @@ local function check_module(set) --check if reserved chars are being used and de
 			end
 		end
 	end
-	useF_B = using.L and using.R and not (using.F or using.B)
 	for _,control in ipairs(set.analog or {}) do
 		for _,reserved in ipairs({".","_","^","*","+","-","<","/",">","(",")","[","]","$","&","#","!"}) do
 			if control[1]:find(reserved, 1, true) then
 				print("Warning: the reserved character '" .. reserved .. "' is part of the '" .. (mame and control[3] or control[2]) .. "' symbol.")
 			end
 		end
+		for letter = 1,control[1]:len() do
+			using[control[1]:sub(letter, letter):upper()] = true
+		end
 	end
+	useF_B = using.L and using.R and not (using.F or using.B)
 end
 
 local function add(symbol, name) --add keys to the generic module
@@ -168,13 +171,14 @@ local function findarcademodule()
 				end
 				for _,key in ipairs(set.analog or {}) do
 					local newkey = {symbol = key[1]:upper()}
+					newkey.pattern = "^" .. newkey.symbol .. " ?%[([+-]?) ?([^%]]-) ?([hH]?) ?%]"
+					newkey.spaces = math.max(6, key[1]:len()+1)
 					for p = 1,nplayers do
 						newkey[p] = (mame and key[3] or key[2]):gsub("#",p)
 						if newkey[p] == "Dial 1" then
 							newkey[p] = "Dial"
 						end
 					end
-					newkey.spaces = math.max(6, key[1]:len()+1)
 					table.insert(analog, newkey)
 				end
 				check_module(set)
@@ -200,10 +204,11 @@ local function findmodule()
 				end
 				for _,key in ipairs(set.analog or {}) do
 					local newkey = {symbol = key[1]:upper()}
+					newkey.pattern = "^" .. newkey.symbol .. " ?%[([+-]?) ?([^%]]-) ?([hH]?) ?%]"
+					newkey.spaces = math.max(6, key[1]:len()+1)
 					for p = 1,nplayers do
 						newkey[p] = key[2]
 					end
-					newkey.spaces = math.max(6, key[1]:len()+1)
 					table.insert(analog, newkey)
 				end
 				check_module(set)
@@ -354,22 +359,54 @@ local funckeys = {
 	end,
 }
 
-local function char(c) --parse function symbols, game keys, spaces and linebreaks
-	for key in pairs(funckeys) do --special keys
-		if c == key then
-			warning("followed '_' with non-game key '" .. key .. "'", nextkey == hold)
-			warning("followed '^' with non-game key '" .. key .. "'", nextkey == nil)
-			funckeys[key]()
-			return
+local function digest(m)
+	local char = m:sub(1, 1) --Take the first character.
+	for func in pairs(funckeys) do --Look for special function characters.
+		if char == func then
+			warning("followed '_' with non-game key '" .. func .. "'", nextkey == hold)
+			warning("followed '^' with non-game key '" .. func .. "'", nextkey == nil)
+			funckeys[func]()
+			return m:sub(2)
 		end
 	end
-	if useF_B and c:upper() == "F" then --Convert F/B to L/R depending on player.
-		c = player%2 == 0 and "L" or "R"
-	elseif useF_B and c:upper() == "B" then
-		c = player%2 == 0 and "R" or "L"
+
+	local capture_start, capture_end = m:find("^[%$&] ?%d+") --Look for save/load ops.
+	if capture_end then
+		m:gsub("^([%$&]) ?(%d+)", function(o, s) --Queue save/load ops before parsing the controls.
+			op, slot, tempframe = o, s, frame --The frame number is not correct until the rest of the frame is parsed.
+			return
+		end)
+		return m:sub(capture_end + 1)
 	end
-	for _,key in ipairs(keymap) do --game keys
-		if c:upper() == key.symbol:upper() then
+
+	for _,control in ipairs(analog or {}) do --Look for analog controls.
+		local capture_start, capture_end = m:upper():find(control.pattern)
+		if capture_end then
+			m:upper():gsub(control.pattern, function(sign, val, hex)
+				val = tonumber(val, hex:len() > 0 and 16 or 10)
+				if warning("Invalid analog value: '" .. m:sub(capture_start, capture_end) .. "'", not val) then return end
+				val = (sign == "-" and -1 or 1) * val
+				if nextkey == hold then --holds can cancel prior holds
+					press[player][control.symbol] = nil
+					hold[player][control.symbol] = val
+				else --press or release to cancel holds
+					press[player][control.symbol] = val
+					hold[player][control.symbol] = nil
+				end
+				nextkey = press
+				return
+			end)
+			return m:sub(capture_end + 1)
+		end
+	end
+
+	if useF_B and char:upper() == "F" then --Convert F/B to L/R depending on player.
+		char = player%2 == 0 and "L" or "R"
+	elseif useF_B and char:upper() == "B" then
+		char = player%2 == 0 and "R" or "L"
+	end
+	for _,key in ipairs(keymap) do --Look for game keys.
+		if char:upper() == key.symbol:upper() then
 			if not nextkey then --release
 				hold[player][key.symbol] = nil
 			else --press or hold
@@ -378,52 +415,25 @@ local function char(c) --parse function symbols, game keys, spaces and linebreak
 				nextkey[player][key.symbol] = true
 			end
 			nextkey = press
-			return
+			return m:sub(2)
 		end
 	end
+
 	for _,space in ipairs({" ",",","\t"}) do --Remove commas, spaces and tabs.
-		if c == space then
-			return
+		if char == space then
+			return m:sub(2)
 		end
 	end
 	for _,linebreak in ipairs({"\n","\r"}) do --Remove linebreaks.
-		if c == linebreak then
+		if char == linebreak then
 			line = line+1
-			return
+			return m:sub(2)
 		end
 	end
-	warning("'" .. c .. "' is unrecognized", c:len() > 0) --invalid character
-	junk = junk .. c
-	return
-end
 
-local function multichar(m) --parse savestate ops and analog controls
-	local chunk = m:find("[%._%^%*</>]") --examine a chunk of script until a function key is found
-	chunk = chunk and m:sub(1, chunk-1):upper() or m:upper()
-	local smallchunk = chunk:find("^[^%[]*[%+%-]") --ensure + - symbols are outside of [ ]
-	chunk = smallchunk and m:sub(1, smallchunk-1) or chunk
-	local etc = m:sub(chunk:len()+1)
-	chunk = chunk:gsub("([%$&]) ?(%d+)", function(o, s) --Queue save/load ops before parsing the controls.
-		op, slot, tempframe = o, s, frame --The frame number is not correct until the rest of the frame is parsed.
-		return ""
-	end)
-	for _,control in ipairs(analog or {}) do --analog controls
-		chunk = chunk:gsub("(" .. control.symbol .. " ?%[([+-]?) ?([^%]]-) ?([hH]?) ?%])", function(capture, sign, val, hex)
-			val = tonumber(val, hex:len() > 0 and 16 or 10)
-			if warning("Invalid analog value: " .. capture, not val) then return "" end
-			val = (sign == "-" and -1 or 1) * val
-			if not nextkey then --release
-				hold[player][control.symbol] = nil
-			else --press or hold
-				warning("'" .. control.symbol .. "' is already pressed by player " .. player, press[player][control.symbol] ~= nil)
-				warning("'" .. control.symbol .. "' is already held by player " .. player, hold[player][control.symbol] ~= nil)
-				nextkey[player][control.symbol] = val
-			end
-			nextkey = press
-			return ""
-		end)
-	end
-	return chunk .. etc
+	warning("'" .. char .. "' is unrecognized", char:len() > 0) --invalid character
+	junk = junk .. char
+	return m:sub(2)
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -474,10 +484,8 @@ local function parse(macro)
 	inputstream,stateop,stateslot = {},{},{}
 	nextkey,inbrackets,bracket = press,false,{}
 
-	while string.len(m) > 0 do
-		m = multichar(m)
-		char(m:sub(1, 1))
-		m = m:sub(2)
+	while string.len(m) > 0 do --Process the macro string piece by piece
+		m = digest(m)
 	end
 	if tempframe then --Clear save/load strings at the end that don't have a frame advance.
 		endframe()
@@ -742,7 +750,11 @@ local function dumpinputstream()
 				end
 			end
 		end
-		dump = dump .. "|\n"
+		if stateop[f] and stateslot[f] then
+			dump = dump .. "| " .. stateop[f] .. " slot " .. stateslot[f] .. "\n"
+		else
+			dump = dump .. "|\n"
+		end
 	end
 	local filename = playbackfile:gsub("%....$", "")
 	filename = filename .. "-inputstream.txt"

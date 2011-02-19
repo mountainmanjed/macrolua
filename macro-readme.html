@@ -105,20 +105,26 @@ h6 { margin: 0 ; text-align: right ; }
 <tr><th><code>k</code></th>
 <td>Input the gamekey <code>k</code>. The key is pressed for the current frame only and then released.</td></tr>
 
-<tr><th><code>k[n]</code></th>
-<td>Set the analog control <code>k</code> to the (decimal) value <code>n</code>.</td></tr>
-
-<tr><th><code>k[-nh]</code></th>
-<td>You may use a minus sign to set the an analog to a negative number, and an <code>h</code> to signify a hexadecimal number.</td></tr>
-
 <tr><th><code>_k</code></th>
-<td>Hold the gamekey <code>k</code>. The key is pressed for the current frame and any subsequent frames until released. This also works with analogs.</td></tr>
+<td>Hold the gamekey <code>k</code>. The key is pressed for the current frame and any subsequent frames until released.</td></tr>
 
 <tr><th><code>^k</code></th>
-<td>Release the gamekey <code>k</code>, if held. When releasing analogs, there must still be brackets with a number even though the number will be ignored.</td></tr>
+<td>Release the gamekey <code>k</code>, if held.</td></tr>
 
 <tr><th><code>*</code></th>
 <td>Release all held keys.</td></tr>
+
+<tr><th><code>k[n]</code></th>
+<td>Set the analog control <code>k</code> to the (decimal) value <code>n</code> for one frame.</td></tr>
+
+<tr><th><code>k[-nh]</code></th>
+<td>You may use a minus sign to set the an analog to a negative number, and <code>h</code> to signify a hexadecimal number.</td></tr>
+
+<tr><th><code>_k[n]</code></th>
+<td>Hold an analog control at the value <code>n</code>. You may change the held value by entering another hold. There's no need to release first.</td></tr>
+
+<tr><th><code>^k[n]</code></th>
+<td>When releasing an analog control, it makes no difference if there is a <code>^</code> or not. Either way the value is set for one frame and then the control is released. Use <code>*</code> or a value of 0 for immediate release.</td></tr>
 
 <tr><th><code>F</code></th>
 <td>Input <code>R</code> for player 1 or odd numbered players, or <code>L</code> for player 2 or even numbered players.</td></tr>
@@ -192,7 +198,9 @@ h6 { margin: 0 ; text-align: right ; }
 <hr />
 
 <h2><a name="modules" />Control modules</h2>
-<p>The game inputs and the symbols used to activate them depend on game system. MacroLua selects the symbol-input mapping based on what emulator is running it, and in the case of arcade, based on the game being run. The traditional format is <code>U</code>,<code>D</code>,<code>L</code>,<code>R</code> for up, down, left and right, and numbers counting up from <code>1</code> for the buttons. Symbols should be a single character for digital controls, but analog symbols can have multiple characters. Avoid using the reserved characters in symbols: <code><b>. W w _ ^ * + - &lt; / &gt; ( ) [ ] $ &amp; # ! ?</b></code></p>
+<p>The game inputs and the symbols used to activate them depend on game system. MacroLua selects the symbol-input mapping based on what emulator is running it, and in the case of arcade, based on the game being run. The traditional format is <code>U</code>,<code>D</code>,<code>L</code>,<code>R</code> for up, down, left and right, and numbers counting up from <code>1</code> for the buttons. Symbols should be a single character for digital controls, but analog symbols can have multiple characters.</p>
+
+<p>Avoid using the reserved characters in symbols: <code><b>. W w _ ^ * + - &lt; / &gt; ( ) [ ] $ &amp; # ! ?</b></code></p>
 
 <p>The available sets are written in <i>macro-modules.lua</i>, and more can be added. Ask for help if needed. The non-arcade systems have a single keyset for all games, so the format only needs to be defined once for each console. However, there are many undefined arcade profiles. MacroLua tries to autogenerate an arcade module if none is available by observing what keys are present in the game. This should work well with games that use an ordinary joystick and numbered buttons.</p>
 
