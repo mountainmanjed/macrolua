@@ -61,11 +61,13 @@ You may produce macros by recording them or by writing them out according to the
 
 In the following commands, `n` represents a number and `k` represents a key (direction, button or switch) defined by the game's module.
 ||*`k`*||Input the gamekey k. The key is pressed for the current frame only and then released.||
-||*`k[n]`*||Set the analog control `k` to the (decimal) value `n`||
-||*`k[-nh]`*||You may use a minus sign to set the an analog to a negative number, and an `h` to signify a hexadecimal number.||
-||*`_k`*||Hold the gamekey k. The key is pressed for the current frame and any subsequent frames until released. This also works with analogs.||
-||*`^k`*||Release the gamekey k, if held. When releasing analogs, there must still be brackets with a number even though the number will be ignored.||
+||*`_k`*||Hold the gamekey k. The key is pressed for the current frame and any subsequent frames until released.||
+||*`^k`*||Release the gamekey k, if held.||
 ||*`*`*||Release all held keys.||
+||*`k[n]`*||Set the analog control `k` to the (decimal) value `n` for one frame.||
+||*`k[-nh]`*||You may use a minus sign to set the an analog to a negative number, and `h` to signify a hexadecimal number.||
+||*`_k[n]`*||Hold an analog control at the value `n`. You may change the held value by entering another hold. There's no need to release first.||
+||*`^k[n]`*||When releasing an analog control, it makes no difference if there is a `^` or not. Either way the value is set for one frame and then the control is released. Use `*` or a value of 0 for immediate release.||
 ||*`F`*||Input `R` for player 1 or odd numbered players, or `L` for player 2 or even numbered players.||
 ||*`B`*||Input `L` for player 1 or odd numbered players, or `R` for player 2 or even numbered players.||
 ||||`F` and `B` only get substituted if the module is using `L` and `R` and not already using `F` or `B`.||
