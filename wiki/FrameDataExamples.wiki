@@ -1,22 +1,34 @@
 #summary Detailed examples of how to collect frame data.
 #labels Featured
 
-This is a guide to using Macrolua to find various kinds of frame data in fighting games. It's the same empirical process that you would have to follow to test on real hardware or with other forms of [http://sonichurricane.com/?p=2157 tool-assistance], but the savestates and precise timing of input in Macrolua makes it less tedious, and the way everything is written in a human-readable form makes the results easier to interpret. These techniques require no special knowledge of the internal workings of the game, such as [http://tasvideos.org/EmulatorResources/RamSearch.html memory addresses], or [http://code.google.com/p/mame-rr/wiki/Hitboxes hitboxes]. You only need to script the input and observe the result.
+This is a guide to using Macrolua to find various kinds of frame data in fighting games. It's the same empirical process that you would have to follow to test on real hardware or with other forms of [http://sonichurricane.com/?p=2157 tool-assistance], but the savestates and precise timing of input in Macrolua makes it less tedious, and the way everything is written in a human-readable form makes the results easier to interpret.
 
-Download the savestates and script files and use them with Macrolua to follow along on these exercises. The paths tell you where to put them at default emulator and Macrolua settings.
-||emulator||savestate||script file||
-||[http://code.google.com/p/mame-rr/ mame-rr]||[http://macrolua.googlecode.com/svn-history/r102/trunk/framedata/ssf2t/7.sta sta\ssf2t\7.sta]||[http://macrolua.googlecode.com/svn-history/r102/trunk/framedata/sfa2/sfa2-4.mis macro\ssf2t-7.mis]||
-||mame-rr||[http://macrolua.googlecode.com/svn-history/r102/trunk/framedata/sfa2/4.sta sta\sfa2\4.sta]||[http://macrolua.googlecode.com/svn-history/r102/trunk/framedata/ssf2t/ssf2t-7.mis macro\sfa2-4.mis]||
+These techniques require no special knowledge of the internal workings of the game, such as [http://tasvideos.org/EmulatorResources/RamSearch.html memory addresses], or [http://code.google.com/p/mame-rr/wiki/Hitboxes hitboxes], and can be adapted to any game. You only need to script the input and observe the result.
 
 <wiki:toc max_depth="2" />
 
 More examples may be added later.
 
 <hr />
+= Getting started =
 
-First, we need to exclude any sources of inconsistency. It doesn't hurt to always use the same scripting style, and the same dummy in the same mode on the same stage. If you run into inconsistent results, those are the first variables you'll try to control anyway, so just take care of it at the beginning. (If the stage is randomly selected, you may want to use [http://www.mamecheat.co.uk/ cheat codes] to set the stage.)
+[http://code.google.com/p/macrolua/downloads/list Download Macrolua], read up on the [MacroLuaDocumentation usage], and set it up with the emulator.
+
+== Downloads ==
+
+Download the savestates and script files and use them with Macrolua to follow along on these exercises. The paths tell you where to put them at default emulator and Macrolua settings.
+||emulator||savestate||script file||description||
+||[http://code.google.com/p/mame-rr/ mame-rr]||[http://macrolua.googlecode.com/svn-history/r102/trunk/framedata/ssf2t/7.sta sta\ssf2t\7.sta]||[http://macrolua.googlecode.com/svn-history/r104/trunk/framedata/framedata-ssf2t.mis macro\framedata-ssf2t.mis]||Cammy vs. M.Bison, Fei-Long stage, Turbo 2 speed||
+||mame-rr||[http://macrolua.googlecode.com/svn-history/r102/trunk/framedata/sfa2/4.sta sta\sfa2\4.sta]||[http://macrolua.googlecode.com/svn-history/r104/trunk/framedata/framedata-sfa2.mis macro\framedata-sfa2.mis]||Sodom vs. Akuma, Sodom stage, Normal speed||
+
+== Methods ==
+
+Any sources of inconsistency need to be excluded. It doesn't hurt to always use the same scripting style, and the same dummy in the same mode on the same stage. If you run into inconsistent results, those are the first variables you'll try to control anyway, so just take care of it at the beginning. (If the stage is randomly selected, you may want to use [http://www.mamecheat.co.uk/ cheat codes] to set the stage.)
 
 In particular, [http://combovid.com/?p=5002 frameskip] needs to be disabled if it's in the game. If you try to collect data under its effect, not only will your numbers be inconsistent from trial to trial, but they will be lower than the true pre-skip values even if you average lots of trials. The nominal "Normal" settings aren't always without skipping, and some games have no skip-free option, but there may be cheat codes to disable frameskip. ([http://www.mamecheat.co.uk/forums/viewtopic.php?f=4&t=4102 Here] are some codes that work on SF2 Hyper Fighting and Super Turbo.) All of the tests here are with no frameskip unless noted otherwise.
+
+<hr />
+= Examples =
 
 == Startup ==
 
@@ -63,7 +75,7 @@ Frame advantage can be further broken down into hit advantage or block advantage
 
 Every attack has a particular number of frames that are capable of hitting. At one end of the scale are attacks with a single active frame, such as most throws, whereas many projectiles remain active until they leave the screen. Some moves, including all multi-hitting attacks, have multiple active phases that can have different hitboxes or other properties.
 
-Now we'll determine the length of the active period in Cammy's close MK. The first frame it can hit was found to be 6, but the last frame can't be observed if the opponent gets hit by the early frames. To deal with this we'll put the opponent in an unhittable state for the first part of the active period by knocking down with a Spiral Arrow/Cannon Drill and having him get up into the cl.MK. (This is a simple example of a [http://sonichurricane.com/?p=171 meaty attack].)
+Now we'll determine the length of the active period in Cammy's close MK. The first frame it can hit was found to be 6, but the last frame can't be observed if the opponent gets hit by the early frames. To deal with this we'll put the opponent in an unhittable state for the first part of the active period by knocking down with a Cannon Drill/Spiral Arrow and having him get up into the cl.MK. (This is a simple example of a [http://sonichurricane.com/?p=171 meaty attack].)
 
 The cl.MK must be performed at the earliest frame that it will connect on the rising opponent, and then the frame advantage of the meaty version must be found. The difference between the normal and meaty advantages, plus one, is the active period of the attack.
 
@@ -117,6 +129,11 @@ Hitstun is the period that the opponent loses control after taking the attack an
 
 To compute hitstun, start with the total time from the start of the attack up to the dummy's recovery, then subtract the attack's startup and the impact freeze. The total time was already found to be 37 frames in the frame advantage test. Subtract 6 startup and 14 hitfreeze for a hitstun of 17 frames. All ground medium attacks in ST have this hitstun.
 
+Summary of Cammy's cl.MK frame data:
+||[http://img684.imageshack.us/img684/4880/ssf2tcammyclmk1.png]||[http://img840.imageshack.us/img840/3997/ssf2tcammyclmk2.png]||[http://img830.imageshack.us/img830/3310/ssf2tcammyclmk3.png]||
+||pre-active||active||recovery||startup||frame advantage||impact freeze||hitstun||
+||5||6||5||6||+7 ~ +12||14||17||
+
 == Charge requirements ==
 
 Charge moves require the stick to be held in a certain direction for a certain period before they can be executed. We'll use the same SSF2T setup to test M.Bison/Vega's requirements. He's an interesting case because most of his moves require different amounts of charge:
@@ -147,21 +164,21 @@ Charge moves require the stick to be held in a certain direction for a certain p
 [http://img190.imageshack.us/img190/3862/ssf2tpscrusher.png]
 
 Results:
-||scissor kick||78 frames||
-||psycho crusher||60||
-||headstomp||60||
-||devil's reverse||61||
-||knee press nightmare||70||
+||Scissor Kick||78 frames||
+||Psycho Crusher||60||
+||Headstomp||60||
+||Devil's Reverse||61||
+||Knee Press Nightmare||70||
 
-(The reason why [http://nki.combovideos.com/data.html#tame T.Akiba] had lower numbers and random success rates is he was unable to turn off frameskip.)
+(The reason why [http://nki.combovideos.com/data.html#tame T.Akiba] had lower numbers and random success rates is there was no way to turn off frameskip.)
 
 == Reversal timing ==
 
-[http://wiki.shoryuken.com/Super_Street_Fighter_2_Turbo#Reversals Reversals] are special moves timed to come out on the first frame after the player comes out of hitstun, blockstun or knockdown state. Using special moves with invulnerability as reversals is an important way to escape meaty attacks and other traps. If the move is executed too late, it's not a reversal and the player is vulnerable for at least one frame.
+[http://wiki.shoryuken.com/Super_Street_Fighter_2_Turbo#Reversals Reversals] are special moves input on the first frame after the player comes out of an uncontrollable state like hitstun, blockstun or knockdown. Using special moves with invulnerability as reversals is an important way to escape meaty attacks and other traps. If the move is executed too late, it's not a reversal and the player is vulnerable for at least one frame.
 
 We'll again use the SSF2T setup to show that, in this game, sometimes it's impossible to get a reversal no matter how you time the input, thanks to turbo speed frameskip. For these tests, do not use the cheat code that eliminates frameskip. The speed here is Turbo 2, which is the same as Turbo 3 in the Japanese version, which is what they use in Japan.
 
-Bison first knocks down Cammy with a c.HK slide, then times another c.HK to hit meaty as she wakes up. Cammy gets out of trouble with a reversal Cannon Spike/Thrust Kick:
+Bison first knocks down Cammy with a c.HK slide, then times another c.HK to hit meaty as she wakes up. Cammy gets out of trouble with a reversal Thrust Kick/Cannon Spike:
 
 {{{
 &7 W12 -_R,W40,^R,_D6.W66,6.^D # knockdown slide, meaty slide
@@ -216,7 +233,7 @@ The startup is the same, 10, in both cases so this confirms teleporting is insta
 
 [http://img822.imageshack.us/img822/5809/sfa2360p.png]
 
-The startup is 24 frames. What if you try to escape by jumping?
+The startup is 25 frames. What if you try to escape by jumping?
 
 {{{
 # sodom 360+LP throw (startup test: Akuma jumps)
@@ -226,7 +243,7 @@ The startup is 24 frames. What if you try to escape by jumping?
 
 [http://img594.imageshack.us/img594/7411/sfa2jump.png]
 
-The apparent startup is now 22, but we know it's 24. That means it takes Akuma two frames to get off the ground.
+The apparent startup is now 23, but we know it's 25. That means it takes Akuma two frames to get off the ground.
 
 == Throw escape timing ==
 
@@ -357,8 +374,8 @@ At close range it's different:
 Your ability to block, jump and do normals is taken away sooner and given back later, due to the blowout effect. But the special move lockout is unchanged from the long range case. There are even a few frames before the freeze when you can't block but you can input a special.
 
 Here's the summary of Sodom's CC frame data:
-||activation distance||Sodom recovers||no normals allowed||specials allowed||
-||far||37||6 - 46||1 - 5, 37 - 46||
-||close||37||2 - 47||1 - 5, 37 - 46||
+||activation distance||Sodom recovers||opponent recovers||opponent frozen||opponent cannot buffer specials||
+||far||37||47||6 ~ 46||6 ~ 37||
+||close||37||48||2 ~ 47||6 ~ 37||
 
-Some characters, Rose for example, have different CC activation frame data.
+Some characters, Rose for example, have different CC activation data.
