@@ -1,0 +1,68 @@
+# http://code.google.com/p/macrolua/wiki/ChangeLog/FrameDataExamples
+# June 1, 2011
+# Copy or move the script you want to play to the top of this file.
+
+################################################################################
+# ssf2t, free-select 2, cammy vs. dictator, fei-long stage
+
+### disable frameskip with the cheat code ###
+
+# cammy cl.MK (startup test)
+&7 W10 5.W4,-_R,W10,^R! blocked
+&7 W10 5.W5,-_R,W10,^R! hit
+
+# cammy cl.MK (frame+ test)
+&7 W10 5.W28,U.W6,-U.! neither jump
+&7 W10 5.W29,U.W6,-U.! both jump
+
+# cammy cl.MK, far MK (link test)
+&7 W10 5.W28,5.! far MK doesn't come out
+&7 W10 5.W29,5.! far MK combos
+&7 W10 5.W30,5.! far MK doesn't combo
+
+# cammy qcf+LK knockdown, walk up, meaty cl.MK (frame+ test)
+&7 W10 D.DR._R.4.W84,^R, W40,5.! MK whiffs: too early
+&7 W10 D.DR._R.4.W84,^R, W41,5.W28,U.W11,-U.! MK hits, neither jump
+&7 W10 D.DR._R.4.W84,^R, W41,5.W29,U.W11,-U.! MK hits, both jump
+
+# cammy qcf+LK knockdown, walk up, meaty cl.MK, far HK (link test)
+&7 W10 D.DR._R.4.W84,^R,W41, 5.W28,6.! far HK doesn't come out
+&7 W10 D.DR._R.4.W84,^R,W41, 5.W29,6.! far HK combos
+&7 W10 D.DR._R.4.W84,^R,W41, 5.W30,6.! far HK doesn't combo
+
+# cammy whiff cl.MK, jump (recovery test)
+&7 W10 -U.W5,+5. W14,U.! whiff MK, no jump
+&7 W10 -U.W5,+5. W15,U.! whiff MK, jump
+
+
+# dictator _B,F+LK (charge test)
+&7 W10 -_R,W77,^R.L.L4.! move doesn't come out
+&7 W10 -_R,W78,^R.L.L4.! move comes out
+
+# dictator _B,F+LP (charge test)
+&7 W10 -_R,W59,^R.L.L1.! move doesn't come out
+&7 W10 -_R,W60,^R.L.L1.! move comes out
+
+# dictator _D,U+LK (charge test)
+&7 W10 -_D,W59,^D.U.U4.! move doesn't come out
+&7 W10 -_D,W60,^D.U.U4.! move comes out
+
+# dictator _D,U+LP (charge test)
+&7 W10 -_D,W60,^D.U.U1.! move doesn't come out
+&7 W10 -_D,W61,^D.U.U1.! move comes out
+
+# dictator super (charge test)
+&7 W10 -_R,W69,^R.L.R.L.L4.! move doesn't come out
+&7 W10 -_R,W70,^R.L.R.L.L4.! move comes out
+
+
+### do not disable frameskip for the reversal tests ###
+
+&7 W12 -_R,W40,^R,_D6.W66,6.^D # knockdown slide, meaty slide
++W12,R.D.DR.4..5..6.! reversal F,D,DF+K
+
+&7 W12 -_R,W40,^R,_D6.W66,6.^D # knockdown slide, meaty slide
++W20,L6.! reversal throw
+
+&7 W13 -_R,W40,^R,_D6.W66,6.^D # knockdown slide, meaty slide (timing changed by one frame)
++W12?,R.D.DR.4..5..6.W100! reversal won't come out because of frameskip
