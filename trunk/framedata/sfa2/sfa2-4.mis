@@ -1,0 +1,83 @@
+# http://code.google.com/p/macrolua/wiki/ChangeLog/FrameDataExamples
+# June 1, 2011
+# Copy or move the script you want to play to the top of this file.
+
+################################################################################
+# sfa2, normal speed, sodom vs. akuma, sodom stage
+
+# sodom MP (startup test: Akuma blocks)
+&4 W10 2.W8,-_R,W10,^R! blocked
+&4 W10 2.W9,-_R,W10,^R! hit
+
+# sodom MP (startup test: Akuma teleports)
+&4 W10 2.W5,-L.D.DL.456.! teleport
+&4 W10 2.W6,-L.D.DL.456.! hit
+
+# sodom 360+LP throw (startup test: Akuma teleports)
+&4 W10 L.D.R.U1. -W20,L.D.DL.456.! teleport
+&4 W10 L.D.R.U1. -W21,L.D.DL.456.! thrown
+
+# sodom 360+LP throw (startup test: Akuma jumps)
+&4 W10 L.D.R.U1. -W21,U.! jumps
+&4 W10 L.D.R.U1. -W22,U.! thrown
+
+
+# sodom HP normal throw (startup test)
+&4 W10 -L.D.DL.456 .+R3.! teleport
+&4 W10 -L.D.DL.456  +R3.! thrown
+
+# sodom HP normal throw (escape window test)
+&4 W10 R3. -W2,L3.! techs out
+&4 W10 R3. -W3,L3.! doesn't tech out
+
+# sodom vs. akuma, simultaneous throws (random winners)
+&4 W10? R3-L3.W100!
+
+
+# sodom QCF,QCF+LP (superfreeze test)
+&4 W10 -R.D.DR.123,W66,+D.DR.R.D.DR.R.1. -W3,1245.! CC
+&4 W10 -R.D.DR.123,W66,+D.DR.R.D.DR.R.1. -W4,1245.! no CC
+&4 W10 -R.D.DR.123,W66,+D.DR.R.D.DR.R.1. -W49,1245.! no CC
+&4 W10 -R.D.DR.123,W66,+D.DR.R.D.DR.R.1. -W50,1245.! CC
+&4 W10 -R.D.DR.123,W66,+D.DR.R.D.DR.R.1. -W59,U.! no jump
+&4 W10 -R.D.DR.123,W66,+D.DR.R.D.DR.R.1. -W60,U.! jump
+
+# sodom QCF,QCF+LP (total startup test)
+&4 W10 D.DR.R.D.DR.R.1. -W3,_R,W80,^R! blocked
+&4 W10 D.DR.R.D.DR.R.1. -W4,_R,W80,^R! hit
+
+# sodom 720+LP (superfreeze test)
+&4 W10 -R.D.DR.123,W66,+R.D.L.U.R.D.L.U1  -1245.! CC
+&4 W10 -R.D.DR.123,W66,+R.D.L.U.R.D.L.U1. -1245.! no CC
+&4 W10 -R.D.DR.123,W66,+R.D.L.U.R.D.L.U1. -W50,1245.! no CC
+&4 W10 -R.D.DR.123,W66,+R.D.L.U.R.D.L.U1. -W51,1245.! CC
+&4 W10 -R.D.DR.123,W66,+R.D.L.U.R.D.L.U1. -W60,U.! no jump
+&4 W10 -R.D.DR.123,W66,+R.D.L.U.R.D.L.U1. -W61,U.! jump
+
+# sodom 720+LP (total startup test)
+&4 W10 R.D.L.U.R.D.L.U1. -W61,R.D.DR.123.! teleport
+&4 W10 R.D.L.U.R.D.L.U1. -W62,R.D.DR.123.! thrown
+
+
+# sodom lvl.3 CC (attacker's recovery)
+&4 W10 1245. W35,6.! no kick
+&4 W10 1245. W36,6.! kick
+
+# sodom lvl.3 CC (midrange superfreeze test)
+&4 W10 -_R,W40,^R,+1245. -W4,1245.! CC
+&4 W10 -_R,W40,^R,+1245. -W5,1245.! no CC
+&4 W10 -_R,W40,^R,+1245. -W35,1245.! no CC
+&4 W10 -_R,W40,^R,+1245. -W36,1245.! CC
+&4 W10 -_R,W40,^R,+1245. -W45,U.! no jump
+&4 W10 -_R,W40,^R,+1245. -W46,U.! jump
+
+# sodom lvl.3 CC (close range superfreeze test)
+&4 W10 1245. -W1,U.! jump
+&4 W10 1245. -W2,U.! no jump
+&4 W10 1245. -W46,U.! no jump
+&4 W10 1245. -W47,U.! jump
+
+&4 W10 1245. -W4,1245.! CC
+&4 W10 1245. -W5,1245.! no CC
+&4 W10 1245. -W35,1245.! no CC
+&4 W10 1245. -W36,1245.! CC
